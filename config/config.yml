@@ -1,0 +1,7 @@
+#Details about llm
+
+llm:
+  groq:
+    provider: "groq"
+    primary_model: "deepseek-r1-distill-llama-70b"
+    fallback_model: "llama3-70b-8192"
