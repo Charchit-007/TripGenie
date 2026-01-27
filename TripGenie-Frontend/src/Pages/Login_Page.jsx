@@ -1,8 +1,16 @@
-import './App.css';
+import './App.css'
 import React, { useState } from 'react';
+import axios from 'axios'; 
 import { Eye, EyeOff, Mail, Lock, User, Compass, Sparkles, Globe } from 'lucide-react';
+// 1. Ensure this import is here
+import { useNavigate } from 'react-router-dom';
+
+const API_BASE_URL = 'http://localhost:5000/api/auth';
 
 export default function AuthPage() {
+  // 2. Initialize the navigation hook
+  const navigate = useNavigate();
+
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -12,6 +20,8 @@ export default function AuthPage() {
     staySignedIn: false
   });
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const [error, setError] = useState(''); 
+  const [success, setSuccess] = useState(''); 
 
   const calculatePasswordStrength = (pass) => {
     let strength = 0;
@@ -30,9 +40,40 @@ export default function AuthPage() {
     }
   };
 
-  const handleSubmit = () => {
-    console.log('Form submitted:', formData);
-    // Add your authentication logic here
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    const url = isLogin ? `${API_BASE_URL}/login` : `${API_BASE_URL}/register`;
+    const { name, email, password } = formData;
+    const dataToSend = isLogin ? { email, password } : { name, email, password };
+
+    try {
+      const response = await axios.post(url, dataToSend, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      // Handle success
+      const token = response.data.token; 
+      localStorage.setItem('token', token); 
+      setSuccess(response.data.msg || (isLogin ? 'Login successful!' : 'Registration successful!'));
+      
+      // Clear form
+      setFormData({ name: '', email: '', password: '', staySignedIn: false }); 
+      setPasswordStrength(0);
+
+      // 3. THE REDIRECT LOGIC
+      // We wait 1.5 seconds so the user can see the "Success" green box
+      setTimeout(() => {
+        navigate('/home'); 
+      }, 1500);
+
+    } catch (err) {
+      const errorMessage = err.response?.data?.msg || 'An unexpected network error occurred.';
+      setError(errorMessage);
+      console.error('Authentication Error:', err.response?.data || err.message);
+    }
   };
 
   const getStrengthColor = () => {
@@ -82,15 +123,18 @@ export default function AuthPage() {
         </div>
 
         {/* Main Card */}
-        <div className="bg-slate-900/50 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-800/50 overflow-hidden">
+        <form onSubmit={handleSubmit} className="bg-slate-900/50 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-800/50 overflow-hidden">
           {/* Tab Switcher */}
           <div className="flex border-b border-slate-800/50">
             <button
-              onClick={() => setIsLogin(true)}
+              type="button"
+              onClick={() => {
+                setIsLogin(true);
+                setError('');
+                setSuccess('');
+              }}
               className={`flex-1 py-4 text-sm font-medium transition-all relative ${
-                isLogin
-                  ? 'text-white'
-                  : 'text-slate-500 hover:text-slate-300'
+                isLogin ? 'text-white' : 'text-slate-500 hover:text-slate-300'
               }`}
             >
               Sign In
@@ -99,11 +143,14 @@ export default function AuthPage() {
               )}
             </button>
             <button
-              onClick={() => setIsLogin(false)}
+              type="button"
+              onClick={() => {
+                setIsLogin(false);
+                setError('');
+                setSuccess('');
+              }}
               className={`flex-1 py-4 text-sm font-medium transition-all relative ${
-                !isLogin
-                  ? 'text-white'
-                  : 'text-slate-500 hover:text-slate-300'
+                !isLogin ? 'text-white' : 'text-slate-500 hover:text-slate-300'
               }`}
             >
               Create Account
@@ -113,10 +160,20 @@ export default function AuthPage() {
             </button>
           </div>
 
-          {/* Form */}
+          {/* Form Content */}
           <div className="p-8">
+            {error && (
+                <div className="mb-4 p-3 bg-red-800/30 text-red-300 rounded-lg border border-red-700 text-sm">
+                    {error}
+                </div>
+            )}
+            {success && (
+                <div className="mb-4 p-3 bg-green-800/30 text-green-300 rounded-lg border border-green-700 text-sm">
+                    {success}
+                </div>
+            )}
+            
             <div className="space-y-5">
-              {/* Name field (register only) */}
               {!isLogin && (
                 <div className="space-y-2">
                   <label className="text-sm text-slate-300 font-medium">Full Name</label>
@@ -124,6 +181,7 @@ export default function AuthPage() {
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                     <input
                       type="text"
+                      required
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="w-full pl-11 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all"
@@ -133,13 +191,13 @@ export default function AuthPage() {
                 </div>
               )}
 
-              {/* Email field */}
               <div className="space-y-2">
                 <label className="text-sm text-slate-300 font-medium">Email</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                   <input
                     type="email"
+                    required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full pl-11 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all"
@@ -148,13 +206,13 @@ export default function AuthPage() {
                 </div>
               </div>
 
-              {/* Password field */}
               <div className="space-y-2">
                 <label className="text-sm text-slate-300 font-medium">Password</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                   <input
                     type={showPassword ? 'text' : 'password'}
+                    required
                     value={formData.password}
                     onChange={handlePasswordChange}
                     className="w-full pl-11 pr-12 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition-all"
@@ -169,7 +227,6 @@ export default function AuthPage() {
                   </button>
                 </div>
 
-                {/* Password Strength Indicator */}
                 {!isLogin && formData.password && (
                   <div className="space-y-1.5">
                     <div className="flex gap-1">
@@ -191,7 +248,6 @@ export default function AuthPage() {
                 )}
               </div>
 
-              {/* Stay signed in / Forgot password */}
               <div className="flex items-center justify-between text-sm">
                 <label className="flex items-center gap-2 cursor-pointer group">
                   <input
@@ -206,25 +262,20 @@ export default function AuthPage() {
                   </span>
                 </label>
                 {isLogin && (
-                  <button
-                    type="button"
-                    className="text-purple-400 hover:text-purple-300 transition-colors"
-                  >
+                  <button type="button" className="text-purple-400 hover:text-purple-300 transition-colors">
                     Forgot password?
                   </button>
                 )}
               </div>
 
-              {/* Submit Button */}
               <button
-  onClick={handleSubmit}
-  className="w-full py-3 bg-linear-to-r from-cyan-500 via-teal-500 to-cyan-500 bg-size-[200%_auto] text-white font-medium rounded-lg hover:shadow-lg hover:shadow-teal-500/25 transition-all duration-500 transform hover:scale-[1.02] hover:bg-position-[right_center] active:scale-[0.98]"
->
-  {isLogin ? 'Sign In' : 'Create Account'}
-</button>
+                type="submit"
+                className="w-full py-3 bg-linear-to-r from-cyan-500 via-teal-500 to-cyan-500 bg-size-[200%_auto] text-white font-medium rounded-lg hover:shadow-lg hover:shadow-teal-500/25 transition-all duration-500 transform hover:scale-[1.02] hover:bg-position-[right_center] active:scale-[0.98]"
+              >
+                {isLogin ? 'Sign In' : 'Create Account'}
+              </button>
             </div>
 
-            {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-slate-800"></div>
@@ -234,9 +285,8 @@ export default function AuthPage() {
               </div>
             </div>
 
-            {/* Social Login */}
             <div className="grid grid-cols-2 gap-3">
-              <button className="flex items-center justify-center gap-2 py-2.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-300 text-sm font-medium transition-all hover:scale-[1.02]">
+              <button type="button" className="flex items-center justify-center gap-2 py-2.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-300 text-sm font-medium transition-all hover:scale-[1.02]">
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                   <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -245,7 +295,7 @@ export default function AuthPage() {
                 </svg>
                 Google
               </button>
-              <button className="flex items-center justify-center gap-2 py-2.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-300 text-sm font-medium transition-all hover:scale-[1.02]">
+              <button type="button" className="flex items-center justify-center gap-2 py-2.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg text-slate-300 text-sm font-medium transition-all hover:scale-[1.02]">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
                 </svg>
@@ -253,7 +303,7 @@ export default function AuthPage() {
               </button>
             </div>
           </div>
-        </div>
+        </form>
 
         {/* Footer */}
         <p className="text-center text-slate-500 text-xs mt-6">
