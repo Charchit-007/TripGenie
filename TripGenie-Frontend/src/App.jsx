@@ -1,9 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login_Page from './Pages/Login_Page.jsx';
-import Landing_Page from './Pages/Final_LandPage.jsx';
+import Landing_Page from './Pages/Landing_Page.jsx';
 import AdminPanel from './Admin/AdminPanel.jsx';
-import Chat_UI from './Pages/Claude_latest_chat.jsx';
+import Chat_UI from './Pages/Chat_UI.jsx';
 import ProtectedRoute from './ProtectedRoutes.jsx'; // Import the gatekeeper
 
 

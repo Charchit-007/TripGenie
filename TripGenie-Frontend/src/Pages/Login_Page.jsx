@@ -1,4 +1,4 @@
-import './App.css'
+import '../App.css'
 import React, { useState } from 'react';
 import axios from 'axios'; 
 import { Eye, EyeOff, Mail, Lock, User, Compass, Sparkles, Globe } from 'lucide-react';
