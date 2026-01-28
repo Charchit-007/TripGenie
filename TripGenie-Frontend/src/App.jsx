@@ -1,11 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Login_Page from './Pages/Login_Page.jsx';
-import Landing_Page from './Pages/Landing_Page.jsx';
-import AdminPanel from './Admin/AdminPanel.jsx';
-import Chat_UI from './Pages/Chat_UI.jsx';
+import Login_Page from './UI_Pages/Login_Page.jsx';
+import Landing_Page from './UI_Pages/Landing_Page.jsx';
+//import AdminPanel from './Admin/AdminPanel.jsx';
+import Chat_UI from './UI_Pages/Chat_UI.jsx';
 import ProtectedRoute from './ProtectedRoutes.jsx'; // Import the gatekeeper
-
+import Test from './UI_Pages/Test.jsx';
 
 //import Landing from './LandingPage.jsx';
 //import Chat from './Chat_UI.jsx';
@@ -17,7 +17,7 @@ import ProtectedRoute from './ProtectedRoutes.jsx'; // Import the gatekeeper
 function App() {
   return(
     <Router>
-      <AdminPanel />
+      <Landing_Page  />
     </Router>
   );
 }

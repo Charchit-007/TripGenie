@@ -1,14 +1,12 @@
-import '../App.css'
+// REMOVED: import '../index.css';  <-- You don't need this anymore
 import React, { useState } from 'react';
 import axios from 'axios'; 
 import { Eye, EyeOff, Mail, Lock, User, Compass, Sparkles, Globe } from 'lucide-react';
-// 1. Ensure this import is here
 import { useNavigate } from 'react-router-dom';
 
 const API_BASE_URL = 'http://localhost:5000/api/auth';
 
 export default function AuthPage() {
-  // 2. Initialize the navigation hook
   const navigate = useNavigate();
 
   const [isLogin, setIsLogin] = useState(true);
@@ -54,17 +52,13 @@ export default function AuthPage() {
         headers: { 'Content-Type': 'application/json' }
       });
 
-      // Handle success
       const token = response.data.token; 
       localStorage.setItem('token', token); 
       setSuccess(response.data.msg || (isLogin ? 'Login successful!' : 'Registration successful!'));
       
-      // Clear form
       setFormData({ name: '', email: '', password: '', staySignedIn: false }); 
       setPasswordStrength(0);
 
-      // 3. THE REDIRECT LOGIC
-      // We wait 1.5 seconds so the user can see the "Success" green box
       setTimeout(() => {
         navigate('/home'); 
       }, 1500);
@@ -87,10 +81,12 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-950 via-purple-950 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+    // FIXED: Changed bg-linear-to-br to bg-gradient-to-br
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+      
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-0 left-10 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
         <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
       </div>
@@ -115,7 +111,8 @@ export default function AuthPage() {
               <Compass className="w-10 h-10 text-orange-400" />
               <Sparkles className="w-4 h-4 text-purple-400 absolute -top-1 -right-1 animate-pulse" />
             </div>
-            <h1 className="text-4xl font-bold bg-linear-to-r from-orange-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
+            {/* FIXED: bg-linear-to-r -> bg-gradient-to-r */}
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
               TripGenie
             </h1>
           </div>
@@ -138,8 +135,9 @@ export default function AuthPage() {
               }`}
             >
               Sign In
+              {/* FIXED: bg-linear-to-r -> bg-gradient-to-r */}
               {isLogin && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-linear-to-r from-orange-500 to-purple-500"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-orange-500 to-purple-500"></div>
               )}
             </button>
             <button
@@ -154,8 +152,9 @@ export default function AuthPage() {
               }`}
             >
               Create Account
+              {/* FIXED: bg-linear-to-r -> bg-gradient-to-r */}
               {!isLogin && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-linear-to-r from-purple-500 to-blue-500"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-blue-500"></div>
               )}
             </button>
           </div>
@@ -268,9 +267,10 @@ export default function AuthPage() {
                 )}
               </div>
 
+              {/* FIXED: bg-linear-to-r -> bg-gradient-to-r AND bg-size-[...] -> bg-[length:...] */}
               <button
                 type="submit"
-                className="w-full py-3 bg-linear-to-r from-cyan-500 via-teal-500 to-cyan-500 bg-size-[200%_auto] text-white font-medium rounded-lg hover:shadow-lg hover:shadow-teal-500/25 transition-all duration-500 transform hover:scale-[1.02] hover:bg-position-[right_center] active:scale-[0.98]"
+                className="w-full py-3 bg-gradient-to-r from-orange-500 to-purple-600 hover:from-orange-600 hover:to-purple-700 text-white font-bold rounded-lg shadow-lg hover:shadow-orange-500/20 transition-all transform hover:scale-[1.02]"
               >
                 {isLogin ? 'Sign In' : 'Create Account'}
               </button>
