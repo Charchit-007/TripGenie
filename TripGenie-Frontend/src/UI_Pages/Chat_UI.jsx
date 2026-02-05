@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Search, MapPin, Calendar, Users, DollarSign, Sparkles, Loader2, Globe } from 'lucide-react';
+import { Search, MapPin, Calendar, Users, DollarSign, Sparkles, Loader2, Globe, Bookmark, BookmarkCheck } from 'lucide-react';
 
-const BASE_URL = "http://localhost:8000";
-
+const AI_BASE_URL = "http://localhost:8000";
+const USER_BASE_URL = "http://localhost:5000";
+ 
 export default function TripInputForm() {
   const [formData, setFormData] = useState({
     destination: '',
@@ -15,6 +16,13 @@ export default function TripInputForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
+  const [isSavingToWatchlist, setIsSavingToWatchlist] = useState(false);
+  const [savedToWatchlist, setSavedToWatchlist] = useState(false);
+  const [currentTripData, setCurrentTripData] = useState(null);
+
+  // You'll need to get this from your auth context/state
+  // For now, using a placeholder - replace with actual user ID from authentication
+  const userId = localStorage.getItem('userId'); // or from your auth context
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,14 +43,15 @@ export default function TripInputForm() {
 
     setIsLoading(true);
     setError(null);
+    setSavedToWatchlist(false); // Reset watchlist status for new search
     
     // Construct the question dynamically from actual form data
     const question = `Plan a trip to ${formData.destination} from ${formData.startDate} to ${formData.endDate} for ${formData.guests} guest${formData.guests > 1 ? 's' : ''} with a ${formData.budget} budget. Trip type: ${formData.tripType}`;
     
-    console.log('Sending request with:', { question, formData }); // Debug log
+    console.log('Sending request with:', { question, formData });
     
     try {
-      const res = await fetch(`${BASE_URL}/query`, {
+      const res = await fetch(`${AI_BASE_URL}/query`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -61,20 +70,18 @@ export default function TripInputForm() {
           minute: '2-digit',
         });
         
+        // Store current trip data for watchlist
+        setCurrentTripData({
+          ...formData,
+          aiResponse: answer,
+        });
+        
         setResponse({
           answer,
           timestamp: currentTime,
         });
         
-        // Reset form after successful submission
-        setFormData({
-          destination: '',
-          startDate: '',
-          endDate: '',
-          guests: 1,
-          budget: 'mid-range',
-          tripType: 'leisure'
-        });
+        // Don't reset form after successful submission - keep data for watchlist
       } else {
         const errorText = await res.text();
         setError(`Bot failed to respond: ${errorText}`);
@@ -86,12 +93,66 @@ export default function TripInputForm() {
     }
   };
 
+  const handleAddToWatchlist = async () => {
+    if (e) e.preventDefault();
+    if (!userId) {
+      setError('Please log in to save trips to your watchlist');
+      return;
+    }
+
+    if (!currentTripData) {
+      setError('No trip data to save');
+      return;
+    }
+
+    setIsSavingToWatchlist(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`${USER_BASE_URL}/api/watchlist/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          ...currentTripData,
+        }),
+      });
+
+      if (res.ok) {
+        setSavedToWatchlist(true);
+        // Optional: Show success message
+        setTimeout(() => {
+          // Reset form after saving
+          setFormData({
+            destination: '',
+            startDate: '',
+            endDate: '',
+            guests: 1,
+            budget: 'mid-range',
+            tripType: 'leisure'
+          });
+          setResponse(null);
+          setCurrentTripData(null);
+        }, 2000);
+      } else {
+        const errorData = await res.json();
+        setError(`Failed to add to watchlist: ${errorData.error || 'Unknown error'}`);
+      }
+    } catch (err) {
+      setError(`Failed to save to watchlist: ${err.message}`);
+    } finally {
+      setIsSavingToWatchlist(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen w-full bg-linear-to-br from-sky-50 via-cyan-50 to-blue-100 flex flex-col justify-center items-center p-6">
+    <div className="min-h-screen w-full bg-gradient-to-br from-sky-50 via-cyan-50 to-blue-100 flex flex-col justify-center items-center p-6">
       
       {/* Header */}
       <div className="text-center mb-10">
-        <h1 className="text-4xl md:text-6xl font-bold bg-linear-to-r from-sky-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent mb-4">
+        <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-sky-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent mb-4">
           Where to next?
         </h1>
         <p className="text-sky-700 text-lg font-medium">Plan your perfect getaway with TripGenie ✨</p>
@@ -105,7 +166,7 @@ export default function TripInputForm() {
             
             {/* Destination */}
             <div className="relative group flex-[1.8] min-w-35">
-              <div className="bg-linear-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-5 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md">
+              <div className="bg-gradient-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-5 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md">
                 <label className="absolute top-2.5 left-5 text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5" />
                   Destination
@@ -125,7 +186,7 @@ export default function TripInputForm() {
 
             {/* Start Date */}
             <div className="relative flex-1 min-w-35">
-              <div className="bg-linear-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md">
+              <div className="bg-gradient-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md">
                 <label className="absolute top-2.5 left-4 text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5" />
                   Check In
@@ -144,7 +205,7 @@ export default function TripInputForm() {
 
             {/* End Date */}
             <div className="relative flex-1 min-w-35">
-              <div className="bg-linear-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md">
+              <div className="bg-gradient-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md">
                 <label className="absolute top-2.5 left-4 text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5" />
                   Check Out
@@ -163,7 +224,7 @@ export default function TripInputForm() {
 
             {/* Guests */}
             <div className="relative flex-1 min-w-35">
-              <div className="bg-linear-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md">
+              <div className="bg-gradient-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md">
                 <label className="absolute top-2.5 left-4 text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1">
                   <Users className="w-3.5 h-3.5" />
                   Guests
@@ -184,7 +245,7 @@ export default function TripInputForm() {
 
             {/* Budget */}
             <div className="relative flex-1 min-w-35">
-              <div className="bg-linear-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md">
+              <div className="bg-gradient-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md">
                 <label className="absolute top-2.5 left-4 text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1">
                   <DollarSign className="w-3.5 h-3.5" />
                   Budget
@@ -206,7 +267,7 @@ export default function TripInputForm() {
 
             {/* Trip Type */}
             <div className="relative flex-[1.2] min-w-35">
-              <div className="bg-linear-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md">
+              <div className="bg-gradient-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md">
                 <label className="absolute top-2.5 left-4 text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1">
                   <Sparkles className="w-3.5 h-3.5" />
                   Vibe
@@ -233,7 +294,7 @@ export default function TripInputForm() {
             <button 
               onClick={handleSubmit}
               disabled={isLoading || !formData.destination.trim() || !formData.startDate || !formData.endDate}
-              className="w-20 h-20 bg-linear-to-br from-sky-500 via-cyan-500 to-blue-500 hover:from-sky-600 hover:via-cyan-600 hover:to-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl hover:shadow-cyan-400/50 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-20 h-20 bg-gradient-to-br from-sky-500 via-cyan-500 to-blue-500 hover:from-sky-600 hover:via-cyan-600 hover:to-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl hover:shadow-cyan-400/50 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {isLoading ? (
                 <Loader2 className="w-7 h-7 animate-spin" />
@@ -264,15 +325,47 @@ export default function TripInputForm() {
       {response && (
         <div className="w-full max-w-7xl">
           <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 p-8">
-            <div className="border-b border-sky-200 pb-4 mb-6">
-              <h2 className="text-3xl font-bold bg-linear-to-r from-sky-600 to-cyan-600 bg-clip-text text-transparent flex items-center gap-2 mb-2">
-                <Globe className="w-8 h-8 text-cyan-600" />
-                AI Travel Plan
-              </h2>
-              <div className="text-sm text-sky-700 space-y-1">
-                <p><strong>Generated:</strong> {response.timestamp}</p>
-                <p><strong>Created by:</strong> Trip Genie</p>
+            <div className="border-b border-sky-200 pb-4 mb-6 flex justify-between items-start">
+              <div>
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-sky-600 to-cyan-600 bg-clip-text text-transparent flex items-center gap-2 mb-2">
+                  <Globe className="w-8 h-8 text-cyan-600" />
+                  AI Travel Plan
+                </h2>
+                <div className="text-sm text-sky-700 space-y-1">
+                  <p><strong>Generated:</strong> {response.timestamp}</p>
+                  <p><strong>Created by:</strong> Trip Genie</p>
+                </div>
               </div>
+
+              {/* Add to Watchlist Button */}
+              {userId && (
+                <button
+                  onClick={handleAddToWatchlist}
+                  disabled={isSavingToWatchlist || savedToWatchlist}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 active:scale-95 disabled:transform-none shadow-lg ${
+                    savedToWatchlist
+                      ? 'bg-green-500 text-white cursor-default'
+                      : 'bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white disabled:opacity-50 disabled:cursor-not-allowed'
+                  }`}
+                >
+                  {isSavingToWatchlist ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Saving...
+                    </>
+                  ) : savedToWatchlist ? (
+                    <>
+                      <BookmarkCheck className="w-5 h-5" />
+                      Saved!
+                    </>
+                  ) : (
+                    <>
+                      <Bookmark className="w-5 h-5" />
+                      Add to Watchlist
+                    </>
+                  )}
+                </button>
+              )}
             </div>
 
             <div className="prose prose-sky max-w-none">

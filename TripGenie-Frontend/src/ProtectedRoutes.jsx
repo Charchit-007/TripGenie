@@ -1,16 +1,17 @@
+// ProtectedRoutes.jsx
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
 const ProtectedRoute = ({ children }) => {
-  // Check if a token exists in localStorage
-  const token = localStorage.getItem('token');
 
-  // If no token, redirect to the login page ("/")
-  if (!token) {
-    return <Navigate to="/" replace />;
+  const isAuthenticated = localStorage.getItem('token'); 
+
+  if (!isAuthenticated) {
+    // 2. If not logged in, redirect to Login
+    return <Navigate to="/login" replace />;
   }
 
-  // If token exists, show the requested page (children)
+  // 3. If logged in, render the protected component (Chat, Watchlist, etc.)
   return children;
 };
 

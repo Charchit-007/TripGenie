@@ -1,38 +1,23 @@
-// Load environment variables from .env file
-require('dotenv').config(); 
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
-const PORT = process.env.PORT || 5000; 
+const connectDB = require('./config/db'); // Your existing DB config
+require('dotenv').config();
+
 const app = express();
 
-// --- Middleware ---
-app.use(cors()); 
-app.use(express.json());
-
-// --- Database Connection ---
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('MongoDB connected successfully!');
-  } catch (err) {
-    console.error('MongoDB connection failed:', err.message);
-    process.exit(1);
-  }
-};
-
+// Connect Database
 connectDB();
 
-// --- Simple Route for Testing ---
-app.get('/', (req, res) => {
-  res.status(200).json({ message: 'Server is running!' });
-});
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-// --- Define Routes ---
-const authRoutes = require('./routes/AuthRoutes');
-app.use('/api/auth', authRoutes);
+// Routes
+app.use('/api/auth', require('./routes/AuthRoutes'));
+app.use('/api/watchlist', require('./routes/watchlist')); // ✅ ADD THIS LINE
 
-// --- Server Start ---
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);  // BUG FIXED HERE
-});
+// Your existing /query route for AI trip planning
+// app.post('/query', async (req, res) => { ... });
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

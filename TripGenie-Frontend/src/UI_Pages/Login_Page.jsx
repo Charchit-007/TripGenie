@@ -1,4 +1,3 @@
-// REMOVED: import '../index.css';  <-- You don't need this anymore
 import React, { useState } from 'react';
 import axios from 'axios'; 
 import { Eye, EyeOff, Mail, Lock, User, Compass, Sparkles, Globe } from 'lucide-react';
@@ -53,7 +52,15 @@ export default function AuthPage() {
       });
 
       const token = response.data.token; 
+      const userId = response.data.userId;        
+      const userName = response.data.name;        
+      const userEmail = response.data.email;      
+
       localStorage.setItem('token', token); 
+      localStorage.setItem('userId', userId);     
+      localStorage.setItem('userName', userName); 
+      localStorage.setItem('userEmail', userEmail); 
+
       setSuccess(response.data.msg || (isLogin ? 'Login successful!' : 'Registration successful!'));
       
       setFormData({ name: '', email: '', password: '', staySignedIn: false }); 

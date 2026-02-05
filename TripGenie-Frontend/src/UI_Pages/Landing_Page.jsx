@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   User, ArrowRight, ArrowLeft, Mountain, Tent, Users, Clock, ChevronDown, 
   Send, Zap, Shield 
@@ -58,6 +59,8 @@ const TrekkingCard = ({ item, index, currentIndex, total, onClickCenter }) => {
 };
 
 export default function LandingPage() {
+
+  const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [marqueeOffers, setMarqueeOffers] = useState([
     { type: 'promo', text: 'PROMO: Bali flights -20%' },
@@ -172,7 +175,8 @@ export default function LandingPage() {
               <Mountain className="text-white w-8 h-8" />
               <span className="text-white font-black tracking-[0.4em] text-xs uppercase">Trail Makers</span>
             </div>
-            <button className="flex items-center gap-3 bg-[#56B7DF] px-8 py-4 rounded-[2rem] font-black text-[10px] uppercase tracking-widest shadow-2xl hover:bg-[#45a6ce] transition-all active:scale-95">
+            <button className="flex items-center gap-3 bg-[#56B7DF] px-8 py-4 rounded-[2rem] font-black text-[10px] uppercase tracking-widest shadow-2xl hover:bg-[#45a6ce] transition-all active:scale-95"
+                    onClick={() => navigate('/login')}>
               <User size={16} /> Sign In
             </button>
         </div>

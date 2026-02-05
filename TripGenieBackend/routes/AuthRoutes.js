@@ -11,7 +11,6 @@ const User = require('../models/user');
 // ==========================================================
 router.post('/register', async (req, res) => {
   const { name, email, password } = req.body;
-
   try {
     // 1. Check if the user already exists
     let user = await User.findOne({ email });
@@ -48,7 +47,10 @@ router.post('/register', async (req, res) => {
       (err, token) => {
         if (err) throw err;
         res.status(201).json({ 
-          token, 
+          token,
+          userId: user.id,  // ✅ ADD THIS
+          name: user.name,   // ✅ ADD THIS
+          email: user.email, // ✅ ADD THIS
           msg: 'Registration successful. Token issued.' 
         }); 
       }
@@ -66,7 +68,6 @@ router.post('/register', async (req, res) => {
 // ==========================================================
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
-
   try {
     // 1. Check if the user exists
     let user = await User.findOne({ email });
@@ -96,6 +97,9 @@ router.post('/login', async (req, res) => {
         if (err) throw err;
         res.json({ 
           token,
+          userId: user.id,  // ✅ ADD THIS
+          name: user.name,   // ✅ ADD THIS
+          email: user.email, // ✅ ADD THIS
           msg: 'Login successful. Token issued.'
         });
       }
