@@ -89,7 +89,7 @@ export default function AuthPage() {
 
   return (
     // FIXED: Changed bg-linear-to-br to bg-gradient-to-br
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-linear-to-br from-slate-950 via-purple-950 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
       
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -119,7 +119,7 @@ export default function AuthPage() {
               <Sparkles className="w-4 h-4 text-purple-400 absolute -top-1 -right-1 animate-pulse" />
             </div>
             {/* FIXED: bg-linear-to-r -> bg-gradient-to-r */}
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold bg-linear-to-r from-orange-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
               TripGenie
             </h1>
           </div>
@@ -144,7 +144,7 @@ export default function AuthPage() {
               Sign In
               {/* FIXED: bg-linear-to-r -> bg-gradient-to-r */}
               {isLogin && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-orange-500 to-purple-500"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-linear-to-r from-orange-500 to-purple-500"></div>
               )}
             </button>
             <button
@@ -161,7 +161,7 @@ export default function AuthPage() {
               Create Account
               {/* FIXED: bg-linear-to-r -> bg-gradient-to-r */}
               {!isLogin && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-blue-500"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-linear-to-r from-purple-500 to-blue-500"></div>
               )}
             </button>
           </div>
@@ -277,7 +277,7 @@ export default function AuthPage() {
               {/* FIXED: bg-linear-to-r -> bg-gradient-to-r AND bg-size-[...] -> bg-[length:...] */}
               <button
                 type="submit"
-                className="w-full py-3 bg-gradient-to-r from-orange-500 to-purple-600 hover:from-orange-600 hover:to-purple-700 text-white font-bold rounded-lg shadow-lg hover:shadow-orange-500/20 transition-all transform hover:scale-[1.02]"
+                className="w-full py-3 bg-linear-to-r from-orange-500 to-purple-600 hover:from-orange-600 hover:to-purple-700 text-white font-bold rounded-lg shadow-lg hover:shadow-orange-500/20 transition-all transform hover:scale-[1.02]"
               >
                 {isLogin ? 'Sign In' : 'Create Account'}
               </button>
