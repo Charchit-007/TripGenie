@@ -89,7 +89,11 @@ export default function LandingPage() {
   const handleInitiatePrompt = (promptText) => {
     navigate('/chat', { state: { initialPrompt: promptText } });
   };
-
+  // for card to response page:
+  const handleCardClick = (promptText) => {
+    navigate('/response', { state: { initialPrompt: promptText } });
+  };
+  
   return (
     <div className="min-h-screen w-full bg-[#0B1D26] text-white font-sans overflow-x-hidden scroll-smooth">
       
@@ -195,7 +199,7 @@ export default function LandingPage() {
                 currentIndex={currentIndex} 
                 total={destinations.length} 
                 onClickCenter={setCurrentIndex} 
-                onInitiate={handleInitiatePrompt}
+                onInitiate={handleCardClick}
               />
             ))}
           </div>

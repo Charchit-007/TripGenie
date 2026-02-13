@@ -21,6 +21,8 @@ function App() {
         <Route path="/login" element={<Login_Page/>} />
         <Route path="/auth" element={<Login_Page />} />
 
+        <Route path="/response" element={<Response />} />
+
         {/* --- Protected Routes --- */}
         {/* Only pages that require a user to be logged in go here */}
         <Route 
