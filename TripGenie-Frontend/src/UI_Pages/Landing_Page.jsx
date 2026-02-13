@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  User, ArrowRight, ArrowLeft, Mountain, Clock, ChevronDown, 
+  User, Mountain, Clock, ChevronDown, 
   Send, Zap, Shield, MessageSquare 
 } from 'lucide-react';
 
 const HikerHero = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b"; 
 
 // --- SUB-COMPONENT: TREKKING CARD ---
-const TrekkingCard = ({ item, index, currentIndex, total, onClickCenter }) => {
+const TrekkingCard = ({ item, index, currentIndex, total, onClickCenter, onInitiate }) => {
   let diff = index - currentIndex;
   if (diff > total / 2) diff -= total;
   if (diff < -total / 2) diff += total;
@@ -30,7 +30,7 @@ const TrekkingCard = ({ item, index, currentIndex, total, onClickCenter }) => {
 
   return (
     <div 
-      onClick={() => onClickCenter(index)}
+      onClick={() => isCenter ? onInitiate(item.prompt) : onClickCenter(index)}
       className={`absolute transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] w-[300px] h-[440px] rounded-[3rem] overflow-hidden border-2 border-[#56B7DF]/40 ring-1 ring-white/10 ${styles}`}
     >
       <img src={item.image} className="absolute inset-0 w-full h-full object-cover" alt={item.title} />
@@ -58,11 +58,11 @@ export default function LandingPage() {
   ]);
 
   const destinations = [
-    { title: "K2 Base Camp", location: "Pakistan", duration: "3 Weeks", image: "https://images.unsplash.com/photo-1533130061792-64b345e4a833" },
-    { title: "Annapurna", location: "Nepal", duration: "12 Days", image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa" },
-    { title: "Everest Camp", location: "Nepal", duration: "2 Weeks", image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb" },
-    { title: "Markha Valley", location: "Ladakh", duration: "1 Week", image: "https://images.unsplash.com/photo-1501785888041-af3ef285b470" },
-    { title: "Inca Trail", location: "Peru", duration: "10 Days", image: "https://images.unsplash.com/photo-1526392060635-9d6019884377" },
+    { title: "K2 Base Camp", location: "Pakistan", duration: "3 Weeks", image: "https://images.unsplash.com/photo-1533130061792-64b345e4a833", prompt: "Plan a 3-week expedition to K2 Base Camp." },
+    { title: "Annapurna", location: "Nepal", duration: "12 Days", image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa", prompt: "I want a 12-day itinerary for the Annapurna Circuit." },
+    { title: "Everest Camp", location: "Nepal", duration: "2 Weeks", image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb", prompt: "Plan a 2-week trek to Everest Base Camp." },
+    { title: "Markha Valley", location: "Ladakh", duration: "1 Week", image: "https://images.unsplash.com/photo-1501785888041-af3ef285b470", prompt: "Create a 1-week trekking route for Markha Valley." },
+    { title: "Inca Trail", location: "Peru", duration: "10 Days", image: "https://images.unsplash.com/photo-1526392060635-9d6019884377", prompt: "Show me a 10-day guide for the Inca Trail." },
   ];
 
   useEffect(() => {
@@ -86,8 +86,9 @@ export default function LandingPage() {
     fetchWeatherAlerts();
   }, []);
 
-  const handleNext = () => setCurrentIndex((prev) => (prev + 1) % destinations.length);
-  const handlePrev = () => setCurrentIndex((prev) => (prev - 1 + destinations.length) % destinations.length);
+  const handleInitiatePrompt = (promptText) => {
+    navigate('/chat', { state: { initialPrompt: promptText } });
+  };
 
   return (
     <div className="min-h-screen w-full bg-[#0B1D26] text-white font-sans overflow-x-hidden scroll-smooth">
@@ -126,7 +127,7 @@ export default function LandingPage() {
           </div>
           <button 
             onClick={() => navigate('/login')}
-            className="flex items-center gap-3 bg-[#56B7DF] px-8 py-4 rounded-[2rem] font-black text-[10px] uppercase tracking-widest shadow-2xl hover:bg-[#45a6ce] transition-all active:scale-95 text-[#0B1D26]"
+            className="flex items-center gap-3 bg-[#56B7DF] px-8 py-4 rounded-[2rem] font-black text-[10px] uppercase tracking-widest shadow-[0_4px_20px_rgba(86,183,223,0.15)] hover:bg-[#68c6eb] transition-all active:scale-95 text-[#0B1D26]"
           >
             <User size={16} /> Sign In
           </button>
@@ -146,7 +147,6 @@ export default function LandingPage() {
           </button>
         </div>
 
-        {/* --- CHATBOT TAB (REDIRECTS TO /chat) --- */}
         <div className="relative z-20 w-full px-10 pb-16 flex justify-center">
           <button 
             onClick={() => navigate('/chat')} 
@@ -182,16 +182,21 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-8">
             <div>
               <span className="text-[#56B7DF] text-xs font-black uppercase tracking-[0.5em]">Global Scout</span>
-              <h2 className="text-6xl font-bold mt-5 text-white tracking-tighter">Popular Destinations</h2>
+              <h2 className="text-8xl font-black mt-5 text-white tracking-tighter uppercase leading-none">Popular <br /> Destinations</h2>
             </div>
-            <div className="flex gap-4 mx-auto md:mx-0">
-              <button onClick={handlePrev} className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center hover:border-[#56B7DF] text-white"><ArrowLeft size={24} /></button>
-              <button onClick={handleNext} className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center hover:border-[#56B7DF] text-white"><ArrowRight size={24} /></button>
-            </div>
+            {/* ARROWS REMOVED FROM HERE */}
           </div>
           <div className="relative flex items-center justify-center h-[500px]">
             {destinations.map((item, index) => (
-              <TrekkingCard key={index} item={item} index={index} currentIndex={currentIndex} total={destinations.length} onClickCenter={setCurrentIndex} />
+              <TrekkingCard 
+                key={index} 
+                item={item} 
+                index={index} 
+                currentIndex={currentIndex} 
+                total={destinations.length} 
+                onClickCenter={setCurrentIndex} 
+                onInitiate={handleInitiatePrompt}
+              />
             ))}
           </div>
         </div>
