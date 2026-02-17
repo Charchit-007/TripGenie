@@ -4,6 +4,7 @@ import Login_Page from './UI_Pages/Login_Page.jsx';
 import Landing_Page from './UI_Pages/Landing_Page.jsx';
 import Chat_UI from './UI_Pages/Chat_UI.jsx';
 import WatchlistPage from './UI_Pages/WatchList.jsx';
+import Admin from './Admin/AdminPanel.jsx'
 import ProtectedRoute from './ProtectedRoutes.jsx';
 import Response from './UI_Pages/Response.jsx';
 
@@ -17,6 +18,9 @@ function App() {
         
         {/* 2. Home must be public so users can see the "Sign In" button */}
         <Route path="/home" element={<Landing_Page />} />
+
+        <Route path="/admin" element={<Admin />} />
+
         
         <Route path="/login" element={<Login_Page/>} />
         <Route path="/auth" element={<Login_Page />} />
