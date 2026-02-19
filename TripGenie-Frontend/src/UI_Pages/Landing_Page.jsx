@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   User, Mountain, Clock, ChevronDown, 
-  Send, Zap, Shield, MessageSquare 
+  Send, Zap, Shield, MessageSquare,
+  Bell
 } from 'lucide-react';
+
 
 const HikerHero = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b"; 
 
@@ -94,6 +96,57 @@ export default function LandingPage() {
     navigate('/response', { state: { initialPrompt: promptText } });
   };
   
+  const [tripWidth, setTripWidth] = useState(500);
+
+useEffect(() => {
+  const updateWidth = () => {
+    const tripElement = document.getElementById("trip-text");
+    if (tripElement) {
+      setTripWidth(tripElement.offsetWidth);
+    }
+  };
+
+  updateWidth();
+  window.addEventListener("resize", updateWidth);
+
+  return () => window.removeEventListener("resize", updateWidth);
+}, []);
+
+const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    setIsAuthenticated(true);
+  }
+}, []);
+
+const handleLogout = () => {
+  localStorage.removeItem("token");
+  setIsAuthenticated(false);
+  navigate("/");
+};
+
+const [showNotifications, setShowNotifications] = useState(false);
+const notificationRef = useRef(null);
+
+useEffect(() => {
+  function handleClickOutside(event) {
+    if (
+      notificationRef.current &&
+      !notificationRef.current.contains(event.target)
+    ) {
+      setShowNotifications(false);
+    }
+  }
+
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
+
+
   return (
     <div className="min-h-screen w-full bg-[#0B1D26] text-white font-sans overflow-x-hidden scroll-smooth">
       
@@ -118,67 +171,158 @@ export default function LandingPage() {
       </nav>
 
       {/* 2. HERO SECTION */}
-      <section id="hero" className="relative h-screen w-full flex flex-col overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <img src={HikerHero} className="w-full h-full object-cover" alt="Hero" />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0B1D26]/70 via-transparent to-[#0B1D26]" />
+<section id="hero" className="relative h-screen w-full flex flex-col overflow-hidden">
+  <div className="absolute inset-0 z-0">
+    <img src={HikerHero} className="w-full h-full object-cover" alt="Hero" />
+    <div className="absolute inset-0 bg-gradient-to-b from-[#0B1D26]/70 via-transparent to-[#0B1D26]" />
+  </div>
+
+ {/* TOP BAR */}
+<div className="relative z-50 w-full max-w-7xl mx-auto px-10 pt-10 flex justify-between items-center">
+
+  <div className="flex items-center gap-3">
+    <Mountain className="text-white w-8 h-8" />
+    <span className="text-white font-black tracking-[0.4em] text-xs uppercase">
+      Trip Genie
+    </span>
+  </div>
+
+  <div className="flex items-center gap-5">
+
+    {!isAuthenticated ? (
+
+      <button
+        onClick={() => navigate('/login')}
+        className="flex items-center gap-3 bg-[#56B7DF] px-8 py-4 rounded-[2rem] font-black text-[10px] uppercase tracking-widest shadow-[0_4px_20px_rgba(86,183,223,0.15)] hover:bg-[#68c6eb] transition-all active:scale-95 text-[#0B1D26]"
+      >
+        <User size={16} /> Sign In
+      </button>
+
+    ) : (
+
+      <>
+        <div className="relative" ref={notificationRef}>
+
+  {/* Bell */}
+  <div
+    onClick={() => setShowNotifications(!showNotifications)}
+    className="relative cursor-pointer"
+  >
+    <Bell
+      size={22}
+      className="text-white hover:text-[#56B7DF] transition-all"
+    />
+
+    <span className="absolute -top-2 -right-2 w-4 h-4 bg-[#56B7DF] text-[9px] flex items-center justify-center rounded-full text-[#0B1D26] font-bold">
+      3
+    </span>
+  </div>
+
+  {/* Notification Panel */}
+  {showNotifications && (
+    <div className="absolute right-0 mt-4 w-80 bg-[#0B1D26] border border-white/10 rounded-2xl shadow-xl p-4 backdrop-blur-xl">
+
+      <h3 className="text-white font-bold mb-3 text-sm">
+        Notifications
+      </h3>
+
+      <div className="space-y-3">
+
+        <div className="bg-white/5 p-3 rounded-xl hover:bg-white/10 transition-all cursor-pointer">
+          <p className="text-white text-xs">
+            Your trip to Bali has been confirmed ✈️
+          </p>
         </div>
 
-        <div className="relative z-50 w-full max-w-7xl mx-auto px-10 pt-10 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <Mountain className="text-white w-8 h-8" />
-            <span className="text-white font-black tracking-[0.4em] text-xs uppercase">Trip Genie</span>
-          </div>
-          <button 
-            onClick={() => navigate('/login')}
-            className="flex items-center gap-3 bg-[#56B7DF] px-8 py-4 rounded-[2rem] font-black text-[10px] uppercase tracking-widest shadow-[0_4px_20px_rgba(86,183,223,0.15)] hover:bg-[#68c6eb] transition-all active:scale-95 text-[#0B1D26]"
-          >
-            <User size={16} /> Sign In
-          </button>
+        <div className="bg-white/5 p-3 rounded-xl hover:bg-white/10 transition-all cursor-pointer">
+          <p className="text-white text-xs">
+            New travel recommendation available!
+          </p>
         </div>
 
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-4">
-          <span className="text-[#56B7DF] text-[10px] font-black uppercase tracking-[0.8em] mb-6">Agentic Travel Intelligence</span>
-          <h1 className="text-7xl md:text-[130px] font-black tracking-tighter uppercase leading-[0.85]">
-            Find Your <br />
-            <span className="text-transparent" style={{ WebkitTextStroke: '2px white' }}>Trip</span>
-          </h1>
-          <button 
-            onClick={() => document.getElementById('popular-destinations').scrollIntoView({ behavior: 'smooth' })} 
-            className="mt-12 w-12 h-12 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-md animate-bounce"
-          >
-            <ChevronDown size={20} className="text-[#56B7DF]" />
-          </button>
+        <div className="bg-white/5 p-3 rounded-xl hover:bg-white/10 transition-all cursor-pointer">
+          <p className="text-white text-xs">
+            20% discount on flight bookings.
+          </p>
         </div>
 
-        <div className="relative z-20 w-full px-10 pb-16 flex justify-center">
-          <button 
-            onClick={() => navigate('/chat')} 
-            className="bg-[#0B1D26]/80 backdrop-blur-3xl rounded-[2.5rem] p-2 pr-6 h-[74px] w-full max-w-[840px] border border-white/10 flex items-center gap-6 group hover:border-[#56B7DF]/50 transition-all cursor-pointer ring-1 ring-[#56B7DF]/10 shadow-2xl text-left"
-          >
-            <div className="h-[58px] w-[58px] rounded-full bg-[#56B7DF]/10 border border-[#56B7DF]/30 flex items-center justify-center shrink-0 relative">
-              <div className="absolute inset-0 bg-[#56B7DF]/5 animate-pulse rounded-full" />
-              <MessageSquare size={22} className="text-[#56B7DF] relative z-10 group-hover:scale-110 transition-transform" />
-            </div>
-            <div className="flex-1">
-              <span className="text-[8px] font-black uppercase tracking-[0.4em] text-[#56B7DF] leading-none mb-1.5 block opacity-70">Agentic Live Intelligence</span>
-              <div className="flex items-center gap-2">
-                <p className="text-lg font-bold text-white/30 tracking-tight group-hover:text-white/60 transition-colors">Click to start chatting with TripGenie...</p>
-                <div className="w-0.5 h-5 bg-[#56B7DF] animate-pulse hidden group-hover:block" />
-              </div>
-            </div>
-            <div className="flex items-center gap-6">
-              <div className="hidden sm:flex flex-col items-end opacity-40 group-hover:opacity-100">
-                <span className="text-[7px] text-white font-black tracking-[0.3em]">SYSTEM STATUS</span>
-                <span className="text-[8px] text-[#56B7DF] font-black tracking-widest uppercase">Active Hub</span>
-              </div>
-              <div className="w-12 h-12 rounded-2xl bg-[#56B7DF] flex items-center justify-center shadow-[0_0_20px_rgba(86,183,223,0.3)] group-hover:scale-105 transition-all">
-                <Send size={20} className="text-[#0B1D26] ml-0.5" />
-              </div>
-            </div>
-          </button>
-        </div>
-      </section>
+      </div>
+
+    </div>
+  )}
+
+</div>
+
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-3 rounded-[2rem] text-white text-[10px] uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95"
+        >
+          Logout
+        </button>
+      </>
+
+    )}
+
+  </div>
+
+</div>
+
+  {/* CENTER HERO TEXT */}
+  <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-4">
+    <span className="text-[#56B7DF] text-[10px] font-black uppercase tracking-[0.8em] mb-6">
+      Agentic Travel Intelligence
+    </span>
+
+    <h1 className="text-7xl md:text-[130px] font-black tracking-tighter uppercase leading-[0.85]">
+      Find Your <br />
+      <span
+        id="trip-text"
+        className="inline-block text-transparent"
+        style={{ WebkitTextStroke: '2px white' }}
+      >
+        Trip
+      </span>
+    </h1>
+
+    <button
+      onClick={() =>
+        document
+          .getElementById('popular-destinations')
+          ?.scrollIntoView({ behavior: 'smooth' })
+      }
+      className="mt-12 w-12 h-12 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-md animate-bounce"
+    >
+      <ChevronDown size={20} className="text-[#56B7DF]" />
+    </button>
+  </div>
+
+  {/* UPDATED BUTTON — MATCHES IMAGE STYLE */}
+  <div className="relative z-20 w-full flex justify-center pb-20">
+    <button
+      onClick={() => navigate('/chat')}
+      style={{ width: tripWidth }}
+      className="
+        h-[74px]
+        rounded-full
+        flex items-center justify-center gap-3
+        text-white text-[16px] font-medium tracking-wide
+        bg-gradient-to-r from-[#0E2F3A] to-[#124453]
+        backdrop-blur-xl
+        border border-[#1F5B6E]
+        shadow-[0_10px_40px_rgba(0,0,0,0.5)]
+        hover:scale-105
+        active:scale-95
+        transition-all duration-300
+      "
+    >
+      Try TripGenie
+      <span className="text-lg">↗</span>
+    </button>
+  </div>
+</section>
+
 
       {/* 3. POPULAR DESTINATIONS */}
       <section id="popular-destinations" className="bg-[#0B1D26] pt-32 pb-48">
