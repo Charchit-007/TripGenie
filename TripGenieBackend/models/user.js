@@ -34,6 +34,13 @@ const WatchlistItemSchema = new mongoose.Schema({
   aiResponse: {
     type: String, // Store the AI-generated travel plan
   },
+  previousAIResponse: {
+    type: String, // Store the previous AI-generated travel plan for comparison
+  },
+  isReplanned: {
+    type: Boolean,
+    default: false, // Indicates if the user has requested a replan
+  },
   addedAt: {
     type: Date,
     default: Date.now,

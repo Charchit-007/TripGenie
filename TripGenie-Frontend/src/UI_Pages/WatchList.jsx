@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   MapPin, Calendar, Users, DollarSign, Sparkles, Trash2, Loader2, 
-  Globe2, ArrowLeft, Heart, Clock, AlertCircle, Compass 
+  Globe2, ArrowLeft, Heart, Clock, AlertCircle, Compass,
+  RefreshCw, ChevronDown, ChevronUp, History
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,6 +15,9 @@ export default function WatchlistPage() {
   const [error, setError] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [selectedTrip, setSelectedTrip] = useState(null);
+
+  // ✅ NEW — tracks which trip is showing the old plan
+  const [showingOldPlan, setShowingOldPlan] = useState({});
 
   const userId = localStorage.getItem('userId');
   const userName = localStorage.getItem('userName');
@@ -30,10 +34,8 @@ export default function WatchlistPage() {
   const fetchWatchlist = async () => {
     setIsLoading(true);
     setError(null);
-
     try {
       const response = await fetch(`${BASE_URL}/api/watchlist/${userId}`);
-      
       if (response.ok) {
         const data = await response.json();
         setWatchlist(data.watchlist || []);
@@ -49,22 +51,15 @@ export default function WatchlistPage() {
   };
 
   const handleDelete = async (itemId) => {
-    if (!window.confirm('Are you sure you want to remove this trip from your watchlist?')) {
-      return;
-    }
-
+    if (!window.confirm('Are you sure you want to remove this trip from your watchlist?')) return;
     setDeletingId(itemId);
-
     try {
       const response = await fetch(`${BASE_URL}/api/watchlist/${userId}/${itemId}`, {
         method: 'DELETE',
       });
-
       if (response.ok) {
         setWatchlist(watchlist.filter(item => item._id !== itemId));
-        if (selectedTrip?._id === itemId) {
-          setSelectedTrip(null);
-        }
+        if (selectedTrip?._id === itemId) setSelectedTrip(null);
       } else {
         const errorData = await response.json();
         alert(`Failed to delete: ${errorData.error}`);
@@ -76,42 +71,31 @@ export default function WatchlistPage() {
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
+  // ✅ NEW — toggles between showing original and replanned itinerary
+  const toggleOldPlan = (tripId) => {
+    setShowingOldPlan(prev => ({
+      ...prev,
+      [tripId]: !prev[tripId]
+    }));
   };
+
+  const formatDate = (dateString) => new Date(dateString).toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric'
+  });
 
   const getDaysBetween = (start, end) => {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    const diffTime = Math.abs(endDate - startDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    const diffTime = Math.abs(new Date(end) - new Date(start));
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
-  const getBudgetIcon = (budget) => {
-    const icons = {
-      'affordable': '💰',
-      'mid-range': '💰💰',
-      'luxury': '💰💰💰'
-    };
-    return icons[budget] || '💰';
-  };
+  const getBudgetIcon = (budget) => ({
+    'affordable': '💰', 'mid-range': '💰💰', 'luxury': '💰💰💰'
+  }[budget] || '💰');
 
-  const getTripTypeEmoji = (tripType) => {
-    const emojis = {
-      'leisure': '🏖️',
-      'adventure': '🏔️',
-      'cultural': '🏛️',
-      'family': '👨‍👩‍👧‍👦',
-      'romantic': '💑',
-      'business': '💼'
-    };
-    return emojis[tripType] || '✈️';
-  };
+  const getTripTypeEmoji = (tripType) => ({
+    'leisure': '🏖️', 'adventure': '🏔️', 'cultural': '🏛️',
+    'family': '👨‍👩‍👧‍👦', 'romantic': '💑', 'business': '💼'
+  }[tripType] || '✈️');
 
   if (isLoading) {
     return (
@@ -144,8 +128,8 @@ export default function WatchlistPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 relative overflow-hidden">
-      
-      {/* Animated background elements */}
+
+      {/* Animated background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
@@ -165,7 +149,7 @@ export default function WatchlistPage() {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
-        
+
         {/* Header */}
         <div className="mb-8">
           <button
@@ -232,12 +216,19 @@ export default function WatchlistPage() {
               <div
                 key={trip._id}
                 className="group bg-slate-900/50 backdrop-blur-xl border border-slate-800/50 rounded-2xl overflow-hidden hover:border-purple-500/30 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10"
-                style={{
-                  animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both`
-                }}
+                style={{ animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both` }}
               >
                 {/* Card Header */}
                 <div className="relative bg-gradient-to-br from-orange-500/20 to-purple-600/20 p-6 border-b border-slate-800/50">
+
+                  {/* ✅ NEW — Replanned badge */}
+                  {trip.isReplanned && (
+                    <div className="absolute top-3 right-16 flex items-center gap-1.5 bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-semibold px-3 py-1 rounded-full">
+                      <RefreshCw className="w-3 h-3" />
+                      Replanned
+                    </div>
+                  )}
+
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
@@ -262,7 +253,7 @@ export default function WatchlistPage() {
                     <button
                       onClick={() => handleDelete(trip._id)}
                       disabled={deletingId === trip._id}
-                      className="p-2 rounded-lg bg-slate-800/50 hover:bg-red-500/20 border border-slate-700/50 hover:border-red-500/50 text-slate-400 hover:text-red-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-2 rounded-lg bg-slate-800/50 hover:bg-red-500/20 border border-slate-700/50 hover:border-red-500/50 text-slate-400 hover:text-red-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6"
                       title="Remove from watchlist"
                     >
                       {deletingId === trip._id ? (
@@ -285,7 +276,6 @@ export default function WatchlistPage() {
                       </div>
                       <div className="text-white font-semibold">{trip.guests}</div>
                     </div>
-
                     <div className="bg-slate-800/30 rounded-lg p-3 border border-slate-700/30">
                       <div className="flex items-center gap-2 text-slate-400 text-xs mb-1">
                         <DollarSign className="w-3.5 h-3.5" />
@@ -296,7 +286,6 @@ export default function WatchlistPage() {
                         {trip.budget}
                       </div>
                     </div>
-
                     <div className="bg-slate-800/30 rounded-lg p-3 border border-slate-700/30">
                       <div className="flex items-center gap-2 text-slate-400 text-xs mb-1">
                         <Sparkles className="w-3.5 h-3.5" />
@@ -315,33 +304,97 @@ export default function WatchlistPage() {
                     Added on {formatDate(trip.addedAt)}
                   </div>
 
-                  {/* AI Response Preview */}
+                  {/* ✅ AI Response Section — updated with replan toggle */}
                   {trip.aiResponse && (
                     <div>
-                      <button
-                        onClick={() => setSelectedTrip(selectedTrip?._id === trip._id ? null : trip)}
-                        className="w-full text-left"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-semibold text-purple-400">AI Travel Plan</span>
-                          <span className="text-xs text-slate-500">
-                            {selectedTrip?._id === trip._id ? 'Hide' : 'View'} details
-                          </span>
-                        </div>
-                      </button>
+                      {/* ✅ NEW — Replanned trip header with toggle */}
+                      {trip.isReplanned ? (
+                        <div className="mb-3">
+                          {/* Plan toggle tabs */}
+                          <div className="flex items-center gap-2 mb-3">
+                            <button
+                              onClick={() => setShowingOldPlan(prev => ({ ...prev, [trip._id]: false }))}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                                !showingOldPlan[trip._id]
+                                  ? 'bg-amber-500/20 border border-amber-500/50 text-amber-400'
+                                  : 'bg-slate-800/30 border border-slate-700/30 text-slate-500 hover:text-slate-300'
+                              }`}
+                            >
+                              <RefreshCw className="w-3 h-3" />
+                              Revised Plan
+                            </button>
+                            {trip.previousAIResponse && (
+                              <button
+                                onClick={() => setShowingOldPlan(prev => ({ ...prev, [trip._id]: true }))}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                                  showingOldPlan[trip._id]
+                                    ? 'bg-slate-700/50 border border-slate-500/50 text-slate-300'
+                                    : 'bg-slate-800/30 border border-slate-700/30 text-slate-500 hover:text-slate-300'
+                                }`}
+                              >
+                                <History className="w-3 h-3" />
+                                Original Plan
+                              </button>
+                            )}
+                          </div>
 
+                          {/* Active plan label */}
+                          <div className="flex items-center justify-between mb-2">
+                            <span className={`text-sm font-semibold ${showingOldPlan[trip._id] ? 'text-slate-400' : 'text-amber-400'}`}>
+                              {showingOldPlan[trip._id] ? '📋 Original Plan' : '🔄 Revised Plan'}
+                            </span>
+                            <button
+                              onClick={() => setSelectedTrip(selectedTrip?._id === trip._id ? null : trip)}
+                              className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                            >
+                              {selectedTrip?._id === trip._id ? 'Hide' : 'View'} details
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Original non-replanned header */
+                        <button
+                          onClick={() => setSelectedTrip(selectedTrip?._id === trip._id ? null : trip)}
+                          className="w-full text-left"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-semibold text-purple-400">AI Travel Plan</span>
+                            <span className="text-xs text-slate-500">
+                              {selectedTrip?._id === trip._id ? 'Hide' : 'View'} details
+                            </span>
+                          </div>
+                        </button>
+                      )}
+
+                      {/* Plan content — expanded */}
                       {selectedTrip?._id === trip._id && (
-                        <div className="bg-slate-800/30 rounded-lg p-4 border border-slate-700/30 max-h-96 overflow-y-auto">
+                        <div className={`rounded-lg p-4 border max-h-96 overflow-y-auto ${
+                          trip.isReplanned && !showingOldPlan[trip._id]
+                            ? 'bg-amber-500/5 border-amber-500/20'
+                            : 'bg-slate-800/30 border-slate-700/30'
+                        }`}>
                           <div className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
-                            {trip.aiResponse}
+                            {/* ✅ Show old or new plan based on toggle */}
+                            {trip.isReplanned && showingOldPlan[trip._id]
+                              ? trip.previousAIResponse
+                              : trip.aiResponse
+                            }
                           </div>
                         </div>
                       )}
 
+                      {/* Plan content — collapsed preview */}
                       {selectedTrip?._id !== trip._id && (
-                        <div className="bg-slate-800/30 rounded-lg p-4 border border-slate-700/30">
+                        <div className={`rounded-lg p-4 border ${
+                          trip.isReplanned && !showingOldPlan[trip._id]
+                            ? 'bg-amber-500/5 border-amber-500/20'
+                            : 'bg-slate-800/30 border-slate-700/30'
+                        }`}>
                           <div className="text-sm text-slate-400 line-clamp-3">
-                            {trip.aiResponse.substring(0, 150)}...
+                            {trip.isReplanned && showingOldPlan[trip._id]
+                              ? trip.previousAIResponse?.substring(0, 150)
+                              : trip.aiResponse?.substring(0, 150)
+                            }...
                           </div>
                         </div>
                       )}
@@ -375,14 +428,8 @@ export default function WatchlistPage() {
 
       <style jsx>{`
         @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>

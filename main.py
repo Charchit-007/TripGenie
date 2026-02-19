@@ -9,6 +9,7 @@ import os
 import datetime
 from dotenv import load_dotenv
 from pydantic import BaseModel
+from agent.replanning_workflow import ReplanningGraphBuilder
 load_dotenv()
 
 app = FastAPI()
@@ -22,6 +23,18 @@ app.add_middleware(
 )
 class QueryRequest(BaseModel):
     question: str
+
+class ReplanRequest(BaseModel):
+    userId: str
+    tripId: str
+    destination: str
+    startDate: str
+    endDate: str
+    guests: int
+    budget: str
+    tripType: str
+    aiResponse: str
+    alert: dict
 
 @app.post("/query")
 async def query_travel_agent(query:QueryRequest):
@@ -47,5 +60,33 @@ async def query_travel_agent(query:QueryRequest):
             final_output = str(output)
         
         return {"answer": final_output}
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+    
+# endpoint for replanning affected trips
+@app.post("/replan")
+async def replan_trip(request: ReplanRequest):
+    try:
+        graph = ReplanningGraphBuilder(model_provider="groq")
+        replan_app = graph()
+
+        # Construct question from trip + alert data
+        question = f"""
+        Replan this trip to {request.destination} from {request.startDate} to {request.endDate}
+        for {request.guests} guest(s) with a {request.budget} budget. Trip type: {request.tripType}.
+        Original plan: {request.aiResponse}
+        Disruption alert: {request.alert}
+        """
+
+        messages = {"messages": [question]}
+        output = replan_app.invoke(messages)
+
+        if isinstance(output, dict) and "messages" in output:
+            final_output = output["messages"][-1].content
+        else:
+            final_output = str(output)
+
+        return {"replannedItinerary": final_output}
+
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
