@@ -3,6 +3,9 @@ const express = require('express');
 const router = express.Router();
 const Notification = require('../models/Notification');
 
+const { checkAndNotifyAllTrips } = require('../services/notificationScheduler');
+
+
 // GET all notifications for a user
 router.get('/:userId', async (req, res) => {
   try {
@@ -49,6 +52,26 @@ router.patch('/:userId/read-all', async (req, res) => {
       { isRead: true }
     );
     res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+// DELETE a single notification
+router.delete('/:notificationId', async (req, res) => {
+  try {
+    await Notification.findByIdAndDelete(req.params.notificationId);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// TEMP — remove in production
+router.post('/test/trigger', async (req, res) => {
+  try {
+    await checkAndNotifyAllTrips();
+    res.json({ success: true, message: 'Scheduler triggered manually' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

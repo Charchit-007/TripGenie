@@ -1,11 +1,10 @@
-import React, { useState, useEffect,useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   User, Mountain, Clock, ChevronDown, 
-  Send, Zap, Shield, MessageSquare,
-  Bell
+  Zap, Shield, Bell, CheckCheck, X
 } from 'lucide-react';
-
+import { useNotifications } from '../hooks/useNotifications.js';
 
 const HikerHero = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b"; 
 
@@ -49,6 +48,32 @@ const TrekkingCard = ({ item, index, currentIndex, total, onClickCenter, onIniti
   );
 };
 
+// ✅ NEW — Severity styling mapped to your dark theme
+const severityConfig = {
+  critical: {
+    dot: 'bg-red-500',
+    border: 'border-l-2 border-red-500',
+    bg: 'bg-red-500/10',
+    label: '🔴',
+  },
+  warning: {
+    dot: 'bg-yellow-400',
+    border: 'border-l-2 border-yellow-400',
+    bg: 'bg-yellow-400/10',
+    label: '🟡',
+  },
+  info: {
+    dot: 'bg-[#56B7DF]',
+    border: 'border-l-2 border-[#56B7DF]',
+    bg: 'bg-[#56B7DF]/10',
+    label: '🔵',
+  },
+};
+
+const formatTime = (date) => new Date(date).toLocaleDateString('en-US', {
+  month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+});
+
 // --- MAIN LANDING PAGE COMPONENT ---
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -88,64 +113,63 @@ export default function LandingPage() {
     fetchWeatherAlerts();
   }, []);
 
-  const handleInitiatePrompt = (promptText) => {
-    navigate('/chat', { state: { initialPrompt: promptText } });
-  };
-  // for card to response page:
   const handleCardClick = (promptText) => {
     navigate('/response', { state: { initialPrompt: promptText } });
   };
   
   const [tripWidth, setTripWidth] = useState(500);
 
-useEffect(() => {
-  const updateWidth = () => {
-    const tripElement = document.getElementById("trip-text");
-    if (tripElement) {
-      setTripWidth(tripElement.offsetWidth);
-    }
+  useEffect(() => {
+    const updateWidth = () => {
+      const tripElement = document.getElementById("trip-text");
+      if (tripElement) setTripWidth(tripElement.offsetWidth);
+    };
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) setIsAuthenticated(true);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setIsAuthenticated(false);
+    navigate("/");
   };
 
-  updateWidth();
-  window.addEventListener("resize", updateWidth);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notificationRef = useRef(null);
 
-  return () => window.removeEventListener("resize", updateWidth);
-}, []);
+  // ✅ REAL notifications from hook
+  const { 
+    notifications, 
+    unreadCount, 
+    markAsRead, 
+    markAllRead,
+    deleteNotification,
+    isLoading 
+  } = useNotifications();
 
-const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-useEffect(() => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    setIsAuthenticated(true);
-  }
-}, []);
-
-const handleLogout = () => {
-  localStorage.removeItem("token");
-  setIsAuthenticated(false);
-  navigate("/");
-};
-
-const [showNotifications, setShowNotifications] = useState(false);
-const notificationRef = useRef(null);
-
-useEffect(() => {
-  function handleClickOutside(event) {
-    if (
-      notificationRef.current &&
-      !notificationRef.current.contains(event.target)
-    ) {
-      setShowNotifications(false);
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
     }
-  }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-  document.addEventListener("mousedown", handleClickOutside);
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
+  const handleNotificationClick = (notification) => {
+    if (!notification.isRead) markAsRead(notification._id);
+    // If it's a replan notification, take user to watchlist
+    if (notification.type === 'replan') navigate('/watchlist');
   };
-}, []);
-
 
   return (
     <div className="min-h-screen w-full bg-[#0B1D26] text-white font-sans overflow-x-hidden scroll-smooth">
@@ -171,158 +195,188 @@ useEffect(() => {
       </nav>
 
       {/* 2. HERO SECTION */}
-<section id="hero" className="relative h-screen w-full flex flex-col overflow-hidden">
-  <div className="absolute inset-0 z-0">
-    <img src={HikerHero} className="w-full h-full object-cover" alt="Hero" />
-    <div className="absolute inset-0 bg-gradient-to-b from-[#0B1D26]/70 via-transparent to-[#0B1D26]" />
-  </div>
-
- {/* TOP BAR */}
-<div className="relative z-50 w-full max-w-7xl mx-auto px-10 pt-10 flex justify-between items-center">
-
-  <div className="flex items-center gap-3">
-    <Mountain className="text-white w-8 h-8" />
-    <span className="text-white font-black tracking-[0.4em] text-xs uppercase">
-      Trip Genie
-    </span>
-  </div>
-
-  <div className="flex items-center gap-5">
-
-    {!isAuthenticated ? (
-
-      <button
-        onClick={() => navigate('/login')}
-        className="flex items-center gap-3 bg-[#56B7DF] px-8 py-4 rounded-[2rem] font-black text-[10px] uppercase tracking-widest shadow-[0_4px_20px_rgba(86,183,223,0.15)] hover:bg-[#68c6eb] transition-all active:scale-95 text-[#0B1D26]"
-      >
-        <User size={16} /> Sign In
-      </button>
-
-    ) : (
-
-      <>
-        <div className="relative" ref={notificationRef}>
-
-  {/* Bell */}
-  <div
-    onClick={() => setShowNotifications(!showNotifications)}
-    className="relative cursor-pointer"
-  >
-    <Bell
-      size={22}
-      className="text-white hover:text-[#56B7DF] transition-all"
-    />
-
-    <span className="absolute -top-2 -right-2 w-4 h-4 bg-[#56B7DF] text-[9px] flex items-center justify-center rounded-full text-[#0B1D26] font-bold">
-      3
-    </span>
-  </div>
-
-  {/* Notification Panel */}
-  {showNotifications && (
-    <div className="absolute right-0 mt-4 w-80 bg-[#0B1D26] border border-white/10 rounded-2xl shadow-xl p-4 backdrop-blur-xl">
-
-      <h3 className="text-white font-bold mb-3 text-sm">
-        Notifications
-      </h3>
-
-      <div className="space-y-3">
-
-        <div className="bg-white/5 p-3 rounded-xl hover:bg-white/10 transition-all cursor-pointer">
-          <p className="text-white text-xs">
-            Your trip to Bali has been confirmed ✈️
-          </p>
+      <section id="hero" className="relative h-screen w-full flex flex-col overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <img src={HikerHero} className="w-full h-full object-cover" alt="Hero" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0B1D26]/70 via-transparent to-[#0B1D26]" />
         </div>
 
-        <div className="bg-white/5 p-3 rounded-xl hover:bg-white/10 transition-all cursor-pointer">
-          <p className="text-white text-xs">
-            New travel recommendation available!
-          </p>
+        {/* TOP BAR */}
+        <div className="relative z-50 w-full max-w-7xl mx-auto px-10 pt-10 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <Mountain className="text-white w-8 h-8" />
+            <span className="text-white font-black tracking-[0.4em] text-xs uppercase">Trip Genie</span>
+          </div>
+
+          <div className="flex items-center gap-5">
+            {!isAuthenticated ? (
+              <button
+                onClick={() => navigate('/login')}
+                className="flex items-center gap-3 bg-[#56B7DF] px-8 py-4 rounded-[2rem] font-black text-[10px] uppercase tracking-widest shadow-[0_4px_20px_rgba(86,183,223,0.15)] hover:bg-[#68c6eb] transition-all active:scale-95 text-[#0B1D26]"
+              >
+                <User size={16} /> Sign In
+              </button>
+            ) : (
+              <>
+                {/* ✅ UPDATED Bell with real data */}
+                <div className="relative" ref={notificationRef}>
+                  <div
+                    onClick={() => setShowNotifications(!showNotifications)}
+                    className="relative cursor-pointer"
+                  >
+                    <Bell size={22} className="text-white hover:text-[#56B7DF] transition-all" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-2 -right-2 w-4 h-4 bg-[#56B7DF] text-[9px] flex items-center justify-center rounded-full text-[#0B1D26] font-bold">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* ✅ UPDATED Notification Panel with real data */}
+                  {showNotifications && (
+                    <div className="absolute right-0 mt-4 w-96 bg-[#0B1D26] border border-white/10 rounded-2xl shadow-xl backdrop-blur-xl overflow-hidden">
+                      
+                      {/* Panel Header */}
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+                        <h3 className="text-white font-bold text-sm">Notifications</h3>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={markAllRead}
+                            className="flex items-center gap-1.5 text-[#56B7DF] text-[10px] font-black uppercase tracking-widest hover:text-white transition-all"
+                          >
+                            <CheckCheck size={12} />
+                            Mark all read
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Panel Body */}
+                      <div className="max-h-80 overflow-y-auto">
+                        {isLoading ? (
+                          <div className="p-6 text-center text-white/40 text-xs">
+                            Loading...
+                          </div>
+                        ) : notifications.length === 0 ? (
+                          <div className="p-8 text-center">
+                            <Bell size={24} className="text-white/20 mx-auto mb-2" />
+                            <p className="text-white/40 text-xs font-bold uppercase tracking-widest">
+                              No notifications yet
+                            </p>
+                          </div>
+                        ) : (
+                          notifications.map(n => {
+                            const config = severityConfig[n.severity] || severityConfig.info;
+                            return (
+                              <div
+                                key={n._id}
+                                onClick={() => handleNotificationClick(n)}
+                                className={`flex items-start gap-3 px-4 py-3 border-b border-white/5 cursor-pointer hover:bg-white/5 transition-all ${config.border} ${config.bg} ${!n.isRead ? 'opacity-100' : 'opacity-50'}`}
+                              >
+                                {/* Severity dot */}
+                                <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${config.dot}`} />
+
+                                <div className="flex-1 min-w-0">
+                                  {/* Destination + type */}
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className="text-white text-xs font-bold">
+                                      📍 {n.destination}
+                                    </span>
+                                    {n.type === 'replan' && (
+                                      <span className="text-[9px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">
+                                        Replanned
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Message */}
+                                  <p className="text-white/60 text-[11px] leading-relaxed line-clamp-2">
+                                    {n.message}
+                                  </p>
+
+                                  {/* Timestamp */}
+                                  <p className="text-white/25 text-[10px] mt-1.5 font-bold uppercase tracking-widest">
+                                    {formatTime(n.createdAt)}
+                                  </p>
+                                </div>
+
+                                {/* ✅ Delete button */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteNotification(n._id);
+                                  }}
+                                  className="text-white/20 hover:text-red-400 transition-all flex-shrink-0 mt-0.5"
+                                >
+                                  <X size={12} />
+                                </button>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+
+                      {/* Panel Footer */}
+                      {notifications.length > 0 && (
+                        <div className="px-4 py-3 border-t border-white/10">
+                          <button
+                            onClick={() => { navigate('/watchlist'); setShowNotifications(false); }}
+                            className="w-full text-center text-[10px] font-black uppercase tracking-widest text-[#56B7DF] hover:text-white transition-all"
+                          >
+                            View Watchlist →
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Logout Button */}
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-3 rounded-[2rem] text-white text-[10px] uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95"
+                >
+                  Logout
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
-        <div className="bg-white/5 p-3 rounded-xl hover:bg-white/10 transition-all cursor-pointer">
-          <p className="text-white text-xs">
-            20% discount on flight bookings.
-          </p>
+        {/* CENTER HERO TEXT */}
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-4">
+          <span className="text-[#56B7DF] text-[10px] font-black uppercase tracking-[0.8em] mb-6">
+            Agentic Travel Intelligence
+          </span>
+          <h1 className="text-7xl md:text-[130px] font-black tracking-tighter uppercase leading-[0.85]">
+            Find Your <br />
+            <span
+              id="trip-text"
+              className="inline-block text-transparent"
+              style={{ WebkitTextStroke: '2px white' }}
+            >
+              Trip
+            </span>
+          </h1>
+          <button
+            onClick={() => document.getElementById('popular-destinations')?.scrollIntoView({ behavior: 'smooth' })}
+            className="mt-12 w-12 h-12 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-md animate-bounce"
+          >
+            <ChevronDown size={20} className="text-[#56B7DF]" />
+          </button>
         </div>
 
-      </div>
-
-    </div>
-  )}
-
-</div>
-
-
-        {/* Logout Button */}
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-3 rounded-[2rem] text-white text-[10px] uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95"
-        >
-          Logout
-        </button>
-      </>
-
-    )}
-
-  </div>
-
-</div>
-
-  {/* CENTER HERO TEXT */}
-  <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-4">
-    <span className="text-[#56B7DF] text-[10px] font-black uppercase tracking-[0.8em] mb-6">
-      Agentic Travel Intelligence
-    </span>
-
-    <h1 className="text-7xl md:text-[130px] font-black tracking-tighter uppercase leading-[0.85]">
-      Find Your <br />
-      <span
-        id="trip-text"
-        className="inline-block text-transparent"
-        style={{ WebkitTextStroke: '2px white' }}
-      >
-        Trip
-      </span>
-    </h1>
-
-    <button
-      onClick={() =>
-        document
-          .getElementById('popular-destinations')
-          ?.scrollIntoView({ behavior: 'smooth' })
-      }
-      className="mt-12 w-12 h-12 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-md animate-bounce"
-    >
-      <ChevronDown size={20} className="text-[#56B7DF]" />
-    </button>
-  </div>
-
-  {/* UPDATED BUTTON — MATCHES IMAGE STYLE */}
-  <div className="relative z-20 w-full flex justify-center pb-20">
-    <button
-      onClick={() => navigate('/chat')}
-      style={{ width: tripWidth }}
-      className="
-        h-[74px]
-        rounded-full
-        flex items-center justify-center gap-3
-        text-white text-[16px] font-medium tracking-wide
-        bg-gradient-to-r from-[#0E2F3A] to-[#124453]
-        backdrop-blur-xl
-        border border-[#1F5B6E]
-        shadow-[0_10px_40px_rgba(0,0,0,0.5)]
-        hover:scale-105
-        active:scale-95
-        transition-all duration-300
-      "
-    >
-      Try TripGenie
-      <span className="text-lg">↗</span>
-    </button>
-  </div>
-</section>
-
+        {/* TRY TRIPGENIE BUTTON */}
+        <div className="relative z-20 w-full flex justify-center pb-20">
+          <button
+            onClick={() => navigate('/chat')}
+            style={{ width: tripWidth }}
+            className="h-[74px] rounded-full flex items-center justify-center gap-3 text-white text-[16px] font-medium tracking-wide bg-gradient-to-r from-[#0E2F3A] to-[#124453] backdrop-blur-xl border border-[#1F5B6E] shadow-[0_10px_40px_rgba(0,0,0,0.5)] hover:scale-105 active:scale-95 transition-all duration-300"
+          >
+            Try TripGenie
+            <span className="text-lg">↗</span>
+          </button>
+        </div>
+      </section>
 
       {/* 3. POPULAR DESTINATIONS */}
       <section id="popular-destinations" className="bg-[#0B1D26] pt-32 pb-48">
@@ -332,7 +386,6 @@ useEffect(() => {
               <span className="text-[#56B7DF] text-xs font-black uppercase tracking-[0.5em]">Global Scout</span>
               <h2 className="text-8xl font-black mt-5 text-white tracking-tighter uppercase leading-none">Popular <br /> Destinations</h2>
             </div>
-            {/* ARROWS REMOVED FROM HERE */}
           </div>
           <div className="relative flex items-center justify-center h-[500px]">
             {destinations.map((item, index) => (
@@ -444,7 +497,6 @@ useEffect(() => {
                 alt="Solid White Map" 
               />
             </div>
-
             <div className="relative z-20 w-full h-full">
               {[
                 { name: 'New York', top: '35%', left: '22%' },

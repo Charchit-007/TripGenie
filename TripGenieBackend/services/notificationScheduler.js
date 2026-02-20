@@ -3,6 +3,7 @@ const cron = require('node-cron');
 const User = require('../models/user');
 const Notification = require('../models/Notification');
 const { getWeatherForecast, assessWeatherSeverity } = require('./weatherService');
+const { sendWeatherAlert } = require('./emailService');
 const axios = require('axios');
 
 const FASTAPI_URL = process.env.FASTAPI_URL || 'http://localhost:8000';
@@ -51,7 +52,7 @@ async function callReplanAgent(trip, user, alert) {
     return res.data.replannedItinerary || null;
   } catch (err) {
     console.error(`❌ Replan agent failed for ${trip.destination}:`, err.message);
-    return null; // Don't crash — normal notification still gets saved
+    return null;
   }
 }
 
@@ -64,11 +65,8 @@ async function updateWatchlistWithReplan(userId, tripId, replannedItinerary) {
     const trip = user.watchlist.id(tripId);
     if (!trip) return;
 
-    // Move current plan to previousAIResponse
     trip.previousAIResponse = trip.aiResponse;
-    // Set new replanned itinerary
     trip.aiResponse = replannedItinerary;
-    // Flag as replanned
     trip.isReplanned = true;
 
     await user.save();
@@ -136,17 +134,22 @@ async function checkAndNotifyAllTrips() {
 
         console.log(`✅ Notification created for user ${user._id} — ${trip.destination}`);
 
+        // ✅ Send email for critical and warning
+        const emailSent = await sendWeatherAlert(user.email, user.name, notification);
+        if (emailSent) {
+          await Notification.findByIdAndUpdate(notification._id, { emailSent: true });
+          console.log(`📧 Email sent for trip ${trip._id}`);
+        }
+
         // ✅ Critical alerts trigger replanning agent
         if (alert.severity === 'critical') {
           const replannedItinerary = await callReplanAgent(trip, user, alert);
 
           if (replannedItinerary) {
-            // Update notification with replanned itinerary
             await Notification.findByIdAndUpdate(notification._id, {
               replannedItinerary
             });
 
-            // Update watchlist item
             await updateWatchlistWithReplan(
               user._id.toString(),
               trip._id.toString(),
