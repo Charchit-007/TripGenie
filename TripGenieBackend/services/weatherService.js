@@ -34,6 +34,8 @@ async function getWeatherForecast(destination, startDate) {
 }
 
 // Check if weather is severe enough to alert
+/* 
+Main condition
 function assessWeatherSeverity(forecasts) {
   if (!forecasts || !forecasts.length) return null;
 
@@ -64,5 +66,14 @@ function assessWeatherSeverity(forecasts) {
   }
   return null; // No alert needed
 }
-
+*/
+function assessWeatherSeverity(forecasts) {
+  // ✅ TEMP FOR TESTING — forces a critical alert every time
+  return {
+    severity: 'critical',
+    condition: 'thunderstorm',
+    temp: 15,
+    windSpeed: 20
+  };
+}
 module.exports = { getWeatherForecast, assessWeatherSeverity };

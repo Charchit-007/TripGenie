@@ -1,0 +1,7 @@
+### Trigger Notification Scheduler
+POST http://localhost:5000/api/notifications/test/trigger
+Content-Type: application/json
+
+###  Get Notifications for User
+GET http://localhost:5000/api/notifications/69993ce0ea52d2dc1999b14d
+Content-Type: application/json

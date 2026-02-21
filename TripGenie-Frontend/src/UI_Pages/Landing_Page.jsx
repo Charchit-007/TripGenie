@@ -5,8 +5,21 @@ import {
   Zap, Shield, Bell, CheckCheck, X
 } from 'lucide-react';
 import { useNotifications } from '../hooks/useNotifications.js';
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 const HikerHero = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b"; 
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon-2x.png",
+  iconUrl:
+    "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
+  shadowUrl:
+    "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
+});
 
 // --- SUB-COMPONENT: TREKKING CARD ---
 const TrekkingCard = ({ item, index, currentIndex, total, onClickCenter, onInitiate }) => {
@@ -171,6 +184,37 @@ export default function LandingPage() {
     if (notification.type === 'replan') navigate('/watchlist');
   };
 
+  const touchStartX = useRef(null);
+
+const handleTouchStart = (e) => {
+  touchStartX.current = e.touches[0].clientX;
+};
+
+const handleTouchEnd = (e) => {
+  if (!touchStartX.current) return;
+
+  const touchEndX = e.changedTouches[0].clientX;
+  const difference = touchStartX.current - touchEndX;
+
+  // Swipe threshold
+  if (difference > 50) {
+    // Swiped Left → move cards forward
+    setCurrentIndex((prev) => (prev + 1) % destinations.length);
+  } else if (difference < -50) {
+    // Swiped Right → move cards backward
+    setCurrentIndex((prev) =>
+      prev === 0 ? destinations.length - 1 : prev - 1
+    );
+  }
+
+  touchStartX.current = null;
+};
+
+const [flippedIndex, setFlippedIndex] = useState(null);
+
+const handleFlip = (index) => {
+  setFlippedIndex(flippedIndex === index ? null : index);
+};
   return (
     <div className="min-h-screen w-full bg-[#0B1D26] text-white font-sans overflow-x-hidden scroll-smooth">
       
@@ -387,7 +431,11 @@ export default function LandingPage() {
               <h2 className="text-8xl font-black mt-5 text-white tracking-tighter uppercase leading-none">Popular <br /> Destinations</h2>
             </div>
           </div>
-          <div className="relative flex items-center justify-center h-[500px]">
+          <div
+  className="relative flex items-center justify-center h-[500px]"
+  onTouchStart={handleTouchStart}
+  onTouchEnd={handleTouchEnd}
+>
             {destinations.map((item, index) => (
               <TrekkingCard 
                 key={index} 
@@ -404,134 +452,225 @@ export default function LandingPage() {
       </section>
 
       {/* 4. BUDGET OPTIMIZATION */}
-      <section id="budget" className="py-32 bg-[#0B1D26]">
-        <div className="max-w-7xl mx-auto px-10">
-          <div className="mb-20 text-center">
-            <span className="text-[#56B7DF] text-[10px] font-black uppercase tracking-[0.6em]">Financial Agent</span>
-            <h2 className="text-5xl font-bold mt-4 text-white tracking-tighter">Budget Optimization</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {[
-              { tier: "Backpacker", price: "800", score: "98%", features: ["Hostels", "Local Transport", "Street Food"] },
-              { tier: "Explorer", price: "2,400", score: "94%", features: ["Boutique Hotels", "Private Transfers", "Guided Tours"] },
-              { tier: "Elite", price: "5,000+", score: "89%", features: ["Luxury Resorts", "Helicopters", "Personal Concierge"] }
-            ].map((plan, i) => (
-              <div key={i} className="group bg-white/5 border border-white/10 p-10 rounded-[3rem] transition-all hover:border-[#56B7DF]/50">
-                <div className="mb-6 inline-flex px-3 py-1 rounded-full border border-[#56B7DF]/30 bg-[#56B7DF]/10 items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#56B7DF] animate-pulse" />
-                  <span className="text-[9px] font-black text-[#56B7DF] uppercase tracking-widest">AI Match: {plan.score}</span>
-                </div>
-                <div className="mb-6 text-white">
-                  <span className="text-6xl font-black tracking-tighter">${plan.price}</span>
-                  <span className="block text-[11px] font-bold text-white uppercase mt-2 tracking-widest opacity-90">Estimated Total</span>
-                </div>
-                <div className="space-y-4 mb-10">
-                  {plan.features.map((f, idx) => (
-                    <div key={idx} className="flex items-center gap-4 text-white/50 group-hover:text-white/80 transition-colors">
-                      <Zap size={14} className="text-[#56B7DF]/60" />
-                      <span className="text-[14px] font-bold tracking-tight">{f}</span>
-                    </div>
-                  ))}
-                </div>
-                <button className="relative w-full py-4 rounded-2xl bg-white/5 border border-white/10 group/btn overflow-hidden transition-all">
-                  <div className="absolute inset-0 bg-[#56B7DF] translate-y-[101%] group-hover/btn:translate-y-0 transition-transform duration-300" />
-                  <span className="relative z-10 text-[11px] font-black uppercase tracking-[0.3em] group-hover/btn:text-[#0B1D26]">Analyze Plan</span>
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+<section id="budget" className="py-32 bg-[#0B1D26]">
+  <div className="max-w-7xl mx-auto px-10">
+    <div className="mb-20 text-center">
+      <span className="text-[#56B7DF] text-[10px] font-black uppercase tracking-[0.6em]">
+        Financial Agent
+      </span>
+      <h2 className="text-5xl font-bold mt-4 text-white tracking-tighter">
+        Budget Optimization
+      </h2>
+    </div>
 
-      {/* 5. MAP SECTION */}
-      <section id="map" className="py-32 bg-[#0B1D26] overflow-hidden">
-        <div className="max-w-7xl mx-auto px-10">
-          <div className="text-center mb-20">
-            <span className="text-[#56B7DF] text-[10px] font-black uppercase tracking-[0.6em]">Global Coverage</span>
-            <h2 className="text-5xl md:text-6xl font-bold mt-5 text-white tracking-tighter leading-tight">
-              Discover the world <br /> through our eyes
-            </h2>
-          </div>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+      {[
+        { tier: "Backpacker", price: "800", score: "98%", features: ["Hostels", "Local Transport", "Street Food"] },
+        { tier: "Explorer", price: "2,400", score: "94%", features: ["Boutique Hotels", "Private Transfers", "Guided Tours"] },
+        { tier: "Elite", price: "5,000+", score: "89%", features: ["Luxury Resorts", "Helicopters", "Personal Concierge"] }
+      ].map((plan, i) => (
 
-          <section className="bg-[#0B1D26] py-10">
-            <style>{`
-              @keyframes marquee-ltr { 0% { transform: translateX(-50%); } 100% { transform: translateX(0%); } }
-              .animate-marquee-readable { display: flex; width: max-content; animation: marquee-ltr 45s linear infinite; }
-            `}</style>
-            <div className="max-w-7xl mx-auto px-10">
-              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden flex items-center h-16 relative">
-                <div className="bg-[#56B7DF] h-full px-8 flex items-center gap-3 z-30 relative shadow-[10px_0_30px_rgba(0,0,0,0.5)]">
-                  <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0B1D26]">Live Intel</span>
-                </div>
-                <div className="flex-1 overflow-hidden h-full flex items-center">
-                  <div className="animate-marquee-readable items-center">
-                    {[1, 2].map((_, i) => (
-                      <div key={i} className="flex items-center">
-                        {marqueeOffers.map((offer, index) => (
-                          <span 
-                            key={`${i}-${index}`}
-                            className={`text-[11px] font-bold uppercase tracking-[0.3em] px-20 whitespace-nowrap flex items-center gap-4 ${
-                              offer.type === 'promo' ? 'text-[#56B7DF]' : 'text-white/80'
-                            }`}
-                          >
-                            {offer.type === 'alert' && (
-                              <div className="w-1.5 h-1.5 rounded-full bg-[#56B7DF]" />
-                            )}
-                            {offer.text}
-                          </span>
-                        ))}
+        <div key={i} className="relative h-[420px] perspective">
+
+          <div
+            className={`relative w-full h-full transition-transform duration-700 preserve-3d ${
+              flippedIndex === i ? "rotate-y-180" : ""
+            }`}
+          >
+
+            {/* FRONT SIDE */}
+            <div className="absolute inset-0 backface-hidden">
+
+              <div className="group bg-white/5 border border-white/10 p-10 rounded-[3rem] h-full flex flex-col justify-between transition-all hover:border-[#56B7DF]/50">
+
+                <div>
+                  <div className="mb-6 inline-flex px-3 py-1 rounded-full border border-[#56B7DF]/30 bg-[#56B7DF]/10 items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#56B7DF] animate-pulse" />
+                    <span className="text-[9px] font-black text-[#56B7DF] uppercase tracking-widest">
+                      AI Match: {plan.score}
+                    </span>
+                  </div>
+
+                  <div className="mb-6 text-white">
+                    <span className="text-6xl font-black tracking-tighter">
+                      ${plan.price}
+                    </span>
+                    <span className="block text-[11px] font-bold text-white uppercase mt-2 tracking-widest opacity-90">
+                      Estimated Total
+                    </span>
+                  </div>
+
+                  <div className="space-y-4 mb-10">
+                    {plan.features.map((f, idx) => (
+                      <div key={idx} className="flex items-center gap-4 text-white/50 group-hover:text-white/80 transition-colors">
+                        <Zap size={14} className="text-[#56B7DF]/60" />
+                        <span className="text-[14px] font-bold tracking-tight">
+                          {f}
+                        </span>
                       </div>
                     ))}
                   </div>
                 </div>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleFlip(i);
+                  }}
+                  className="relative w-full py-4 rounded-2xl bg-white/5 border border-white/10 group/btn overflow-hidden transition-all flex items-center justify-center"      >
+                  <div className="absolute inset-0 bg-[#56B7DF] translate-y-[101%] group-hover/btn:translate-y-0 transition-transform duration-300" />
+                  <span className="relative z-10 text-[11px] font-black uppercase tracking-[0.3em] group-hover/btn:text-[#0B1D26]">
+                    Analyze Plan
+                  </span>
+                </button>
               </div>
             </div>
-          </section>
 
-          <div className="relative w-full aspect-[21/9] rounded-[4rem] bg-[#12252E] border border-white/5 overflow-hidden flex items-center justify-center shadow-2xl">
-            <div className="absolute inset-0 z-0 opacity-90 pointer-events-none scale-[1.1]">
-              <img 
-                src="https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg" 
-                className="w-full h-full object-contain brightness-0 invert shadow-[0_0_30px_rgba(255,255,255,0.2)]" 
-                alt="Solid White Map" 
-              />
-            </div>
-            <div className="relative z-20 w-full h-full">
-              {[
-                { name: 'New York', top: '35%', left: '22%' },
-                { name: 'Paris', top: '30%', left: '49%' },
-                { name: 'Dubai', top: '42%', left: '58%' },
-                { name: 'Mumbai', top: '45%', left: '63%' },
-                { name: 'Singapore', top: '52%', left: '72%' },
-                { name: 'Tokyo', top: '33%', left: '82%' },
-                { name: 'Sydney', top: '72%', left: '83%' },
-                { name: 'London', top: '28%', left: '48%' },
-                { name: 'Monaco', top: '32%', left: '50.5%' },
-                { name: 'Los Angeles', top: '36%', left: '18%' },
-                { name: 'Rio de Janeiro', top: '65%', left: '34%' },
-                { name: 'Cairo', top: '42%', left: '52%' },
-                { name: 'Bangkok', top: '47%', left: '70%' },
-                { name: 'Istanbul', top: '35%', left: '53%' },
-                { name: 'Cape Town', top: '74%', left: '51%' }
-              ].map((loc, idx) => (
-                <div 
-                  key={idx}
-                  style={{ top: loc.top, left: loc.left }}
-                  className="absolute group/pin cursor-pointer transform -translate-x-1/2 -translate-y-1/2"
+            {/* BACK SIDE */}
+            <div className="absolute inset-0 backface-hidden rotate-y-180">
+              <div className="bg-white/5 border border-white/10 p-10 rounded-[3rem] h-full flex flex-col justify-center items-center text-center">
+                <h3 className="text-white text-xl font-bold mb-4">
+                  {plan.tier} Plan Analysis
+                </h3>
+                <p className="text-white/60 text-sm mb-6 max-w-xs">
+                  This plan is optimized for cost efficiency, travel flexibility, and destination balance.
+                </p>
+                <button
+                  onClick={() => handleFlip(i)}
+                  className="text-[#56B7DF] text-sm font-semibold"
                 >
-                  <div className="w-10 h-10 bg-[#56B7DF] rounded-full animate-ping absolute -left-3.5 -top-3.5 opacity-40" />
-                  <div className="w-4 h-4 bg-[#56B7DF] rounded-full relative z-10 shadow-[0_0_20px_#56B7DF] group-hover/pin:scale-150 transition-transform duration-300 border-2 border-[#12252E]" />
-                  <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-[#0B1D26] border border-white/20 text-white px-4 py-1.5 rounded-lg opacity-0 group-hover/pin:opacity-100 transition-all duration-300 pointer-events-none transform group-hover/pin:-translate-y-2 shadow-2xl z-50">
-                    <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">{loc.name}</span>
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#0B1D26] border-r border-b border-white/20 rotate-45" />
-                  </div>
+                  ← Go Back
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+      {/* 5. MAP SECTION */}
+<section id="map" className="py-32 bg-[#0B1D26] overflow-hidden">
+  <div className="max-w-7xl mx-auto px-10">
+    <div className="text-center mb-20">
+      <span className="text-[#56B7DF] text-[10px] font-black uppercase tracking-[0.6em]">
+        Global Coverage
+      </span>
+      <h2 className="text-5xl md:text-6xl font-bold mt-5 text-white tracking-tighter leading-tight">
+        Discover the world <br /> through our eyes
+      </h2>
+    </div>
+
+    {/* Live Intel Marquee */}
+    <section className="bg-[#0B1D26] py-10">
+      <style>{`
+        @keyframes marquee-ltr { 
+          0% { transform: translateX(-50%); } 
+          100% { transform: translateX(0%); } 
+        }
+        .animate-marquee-readable { 
+          display: flex; 
+          width: max-content; 
+          animation: marquee-ltr 45s linear infinite; 
+        }
+      `}</style>
+
+      <div className="max-w-7xl mx-auto px-10">
+        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden flex items-center h-16 relative">
+          <div className="bg-[#56B7DF] h-full px-8 flex items-center gap-3 z-30 relative shadow-[10px_0_30px_rgba(0,0,0,0.5)]">
+            <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0B1D26]">
+              Live Intel
+            </span>
+          </div>
+
+          <div className="flex-1 overflow-hidden h-full flex items-center">
+            <div className="animate-marquee-readable items-center">
+              {[1, 2].map((_, i) => (
+                <div key={i} className="flex items-center">
+                  {marqueeOffers.map((offer, index) => (
+                    <span
+                      key={`${i}-${index}`}
+                      className={`text-[11px] font-bold uppercase tracking-[0.3em] px-20 whitespace-nowrap flex items-center gap-4 ${
+                        offer.type === "promo"
+                          ? "text-[#56B7DF]"
+                          : "text-white/80"
+                      }`}
+                    >
+                      {offer.type === "alert" && (
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#56B7DF]" />
+                      )}
+                      {offer.text}
+                    </span>
+                  ))}
                 </div>
               ))}
             </div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
+
+    {/* Leaflet Interactive Map */}
+    <div className="relative w-full aspect-[21/9] rounded-[4rem] overflow-hidden border border-white/5 shadow-2xl">
+      <MapContainer
+        center={[20, 0]}
+        zoom={2}
+        scrollWheelZoom={false}
+        zoomControl={false}
+        className="w-full h-full z-10"
+      >
+        {/* Dark theme tiles */}
+       <TileLayer
+  attribution="&copy; OpenStreetMap contributors"
+  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+/>
+
+        {/* MARKERS */}
+        <Marker position={[40.7128, -74.006]}>
+          <Popup>New York</Popup>
+        </Marker>
+
+        <Marker position={[48.8566, 2.3522]}>
+          <Popup>Paris</Popup>
+        </Marker>
+
+        <Marker position={[51.5072, -0.1276]}>
+          <Popup>London</Popup>
+        </Marker>
+
+        <Marker position={[25.2048, 55.2708]}>
+          <Popup>Dubai</Popup>
+        </Marker>
+
+        <Marker position={[19.076, 72.8777]}>
+          <Popup>Mumbai</Popup>
+        </Marker>
+
+        <Marker position={[35.6762, 139.6503]}>
+          <Popup>Tokyo</Popup>
+        </Marker>
+
+        <Marker position={[-33.8688, 151.2093]}>
+          <Popup>Sydney</Popup>
+        </Marker>
+
+        <Marker position={[-22.9068, -43.1729]}>
+          <Popup>Rio de Janeiro</Popup>
+        </Marker>
+
+        <Marker position={[30.0444, 31.2357]}>
+          <Popup>Cairo</Popup>
+        </Marker>
+
+        <Marker position={[1.3521, 103.8198]}>
+          <Popup>Singapore</Popup>
+        </Marker>
+      </MapContainer>
+    </div>
+  </div>
+</section>
 
       {/* 6. FOOTER */}
       <footer id="footer" className="w-full bg-[#0B1D26] pt-20 pb-20">
