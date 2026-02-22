@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  User, Mountain, Clock, ChevronDown, 
+  User, Mountain, ChevronDown, 
   Zap, Shield, Bell, CheckCheck, X
 } from 'lucide-react';
 import { useNotifications } from '../hooks/useNotifications.js';
@@ -41,7 +41,7 @@ const TrekkingCard = ({ item, index, currentIndex, total, onClickCenter, onIniti
 
   return (
     <div 
-      onClick={() => isCenter ? onInitiate(item.prompt) : onClickCenter(index)}
+      onClick={() => isCenter ? onInitiate(item) : onClickCenter(index)}
       className={`absolute transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] w-[300px] h-[440px] rounded-[3rem] overflow-hidden border-2 border-[#56B7DF]/40 ring-1 ring-white/10 ${styles}`}
     >
       <img src={item.image} className="absolute inset-0 w-full h-full object-cover" alt={item.title} />
@@ -49,9 +49,14 @@ const TrekkingCard = ({ item, index, currentIndex, total, onClickCenter, onIniti
       <div className="absolute bottom-10 left-8 right-8 text-left">
         <h3 className="text-white text-xl font-bold tracking-tight">{item.title}</h3>
         <p className="text-white/50 text-[10px] mt-1 font-bold uppercase tracking-widest">{item.location}</p>
-        <div className="flex items-center gap-2 mt-5 text-white/60">
-          <Clock size={14} />
-          <span className="text-[10px] font-black uppercase tracking-widest">{item.duration}</span>
+        {/* ✅ Replaced duration with bestTime + vibe */}
+        <div className="flex items-center gap-2 mt-4 flex-wrap">
+          <span className="flex items-center gap-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-[10px] font-black text-white uppercase tracking-wider">
+            🌤️ {item.bestTime}
+          </span>
+          <span className="flex items-center gap-1 bg-[#56B7DF]/20 backdrop-blur-sm border border-[#56B7DF]/30 rounded-full px-3 py-1 text-[10px] font-black text-[#56B7DF] uppercase tracking-wider">
+            {item.vibeIcon} {item.vibe}
+          </span>
         </div>
       </div>
     </div>
@@ -59,71 +64,55 @@ const TrekkingCard = ({ item, index, currentIndex, total, onClickCenter, onIniti
 };
 
 const severityConfig = {
-  critical: {
-    dot: 'bg-red-500',
-    border: 'border-l-2 border-red-500',
-    bg: 'bg-red-500/10',
-    label: '🔴',
-  },
-  warning: {
-    dot: 'bg-yellow-400',
-    border: 'border-l-2 border-yellow-400',
-    bg: 'bg-yellow-400/10',
-    label: '🟡',
-  },
-  info: {
-    dot: 'bg-[#56B7DF]',
-    border: 'border-l-2 border-[#56B7DF]',
-    bg: 'bg-[#56B7DF]/10',
-    label: '🔵',
-  },
+  critical: { dot: 'bg-red-500', border: 'border-l-2 border-red-500', bg: 'bg-red-500/10', label: '🔴' },
+  warning: { dot: 'bg-yellow-400', border: 'border-l-2 border-yellow-400', bg: 'bg-yellow-400/10', label: '🟡' },
+  info: { dot: 'bg-[#56B7DF]', border: 'border-l-2 border-[#56B7DF]', bg: 'bg-[#56B7DF]/10', label: '🔵' },
 };
 
 const formatTime = (date) => new Date(date).toLocaleDateString('en-US', {
   month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
 });
 
-// ✅ Season-based destinations
 const getSeason = () => {
-  const month = new Date().getMonth(); // 0-11
-  if (month >= 11 || month <= 1) return 'winter';  // Dec, Jan, Feb
-  if (month >= 2 && month <= 4)  return 'spring';  // Mar, Apr, May
-  if (month >= 5 && month <= 7)  return 'summer';  // Jun, Jul, Aug
-  return 'autumn';                                   // Sep, Oct, Nov
+  const month = new Date().getMonth();
+  if (month >= 11 || month <= 1) return 'winter';
+  if (month >= 2 && month <= 4)  return 'spring';
+  if (month >= 5 && month <= 7)  return 'summer';
+  return 'autumn';
 };
 
+// ✅ Added bestTime and vibe (with vibeIcon) to every destination
 const seasonDestinations = {
   winter: [
-    { title: "Maldives", location: "Indian Ocean", duration: "5 Days", image: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8", prompt: "Plan a 5-day romantic beach trip to the Maldives." },
-    { title: "Rajasthan", location: "India", duration: "10 Days", image: "https://images.unsplash.com/photo-1477587458883-47145ed94245", prompt: "Plan a 10-day cultural trip to Rajasthan, India." },
-    { title: "Dubai", location: "UAE", duration: "6 Days", image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c", prompt: "Plan a 6-day luxury trip to Dubai, UAE." },
-    { title: "Bangkok", location: "Thailand", duration: "7 Days", image: "https://images.unsplash.com/photo-1508009603885-50cf7c579365", prompt: "Plan a 7-day leisure trip to Bangkok, Thailand." },
-    { title: "Queenstown", location: "New Zealand", duration: "8 Days", image: "https://images.unsplash.com/photo-1507699622108-4be3abd695ad", prompt: "Plan an 8-day adventure trip to Queenstown, New Zealand." },
+    { title: "Maldives", location: "Indian Ocean", bestTime: "Nov – Apr", vibe: "Beach", vibeIcon: "🏖️", image: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8", prompt: "Plan a romantic beach trip to the Maldives." },
+    { title: "Rajasthan", location: "India", bestTime: "Oct – Mar", vibe: "Cultural", vibeIcon: "🕌", image: "https://images.unsplash.com/photo-1477587458883-47145ed94245", prompt: "Plan a cultural trip to Rajasthan, India." },
+    { title: "Dubai", location: "UAE", bestTime: "Nov – Mar", vibe: "Luxury", vibeIcon: "✨", image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c", prompt: "Plan a luxury trip to Dubai, UAE." },
+    { title: "Bangkok", location: "Thailand", bestTime: "Nov – Feb", vibe: "Leisure", vibeIcon: "🌴", image: "https://images.unsplash.com/photo-1508009603885-50cf7c579365", prompt: "Plan a leisure trip to Bangkok, Thailand." },
+    { title: "Queenstown", location: "New Zealand", bestTime: "Dec – Feb", vibe: "Adventure", vibeIcon: "🏔️", image: "https://images.unsplash.com/photo-1507699622108-4be3abd695ad", prompt: "Plan an adventure trip to Queenstown, New Zealand." },
   ],
   spring: [
-    { title: "Kyoto", location: "Japan", duration: "7 Days", image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e", prompt: "Plan a 7-day cultural trip to Kyoto, Japan during cherry blossom season." },
-    { title: "Santorini", location: "Greece", duration: "6 Days", image: "https://images.unsplash.com/photo-1469796466635-455ede028aca", prompt: "Plan a 6-day romantic trip to Santorini, Greece." },
-    { title: "Amsterdam", location: "Netherlands", duration: "5 Days", image: "https://images.unsplash.com/photo-1512470876302-972faa2aa9a4", prompt: "Plan a 5-day trip to Amsterdam, Netherlands during tulip season." },
-    { title: "Tuscany", location: "Italy", duration: "8 Days", image: "https://images.unsplash.com/photo-1533104816931-20fa691ff6ca", prompt: "Plan an 8-day leisure trip through Tuscany, Italy." },
-    { title: "Barcelona", location: "Spain", duration: "6 Days", image: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4", prompt: "Plan a 6-day cultural trip to Barcelona, Spain." },
+    { title: "Kyoto", location: "Japan", bestTime: "Mar – May", vibe: "Cultural", vibeIcon: "🌸", image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e", prompt: "Plan a cultural trip to Kyoto, Japan during cherry blossom season." },
+    { title: "Santorini", location: "Greece", bestTime: "Apr – Jun", vibe: "Romantic", vibeIcon: "💙", image: "https://images.unsplash.com/photo-1469796466635-455ede028aca", prompt: "Plan a romantic trip to Santorini, Greece." },
+    { title: "Amsterdam", location: "Netherlands", bestTime: "Mar – May", vibe: "Leisure", vibeIcon: "🌷", image: "https://images.unsplash.com/photo-1512470876302-972faa2aa9a4", prompt: "Plan a trip to Amsterdam, Netherlands during tulip season." },
+    { title: "Tuscany", location: "Italy", bestTime: "Apr – Jun", vibe: "Leisure", vibeIcon: "🍷", image: "https://images.unsplash.com/photo-1533104816931-20fa691ff6ca", prompt: "Plan a leisure trip through Tuscany, Italy." },
+    { title: "Barcelona", location: "Spain", bestTime: "May – Jun", vibe: "Cultural", vibeIcon: "🎨", image: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4", prompt: "Plan a cultural trip to Barcelona, Spain." },
   ],
   summer: [
-    { title: "Bali", location: "Indonesia", duration: "8 Days", image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4", prompt: "Plan an 8-day leisure trip to Bali, Indonesia." },
-    { title: "Amalfi Coast", location: "Italy", duration: "7 Days", image: "https://images.unsplash.com/photo-1533587851505-d119e13fa0d7", prompt: "Plan a 7-day scenic trip along the Amalfi Coast, Italy." },
-    { title: "Dubrovnik", location: "Croatia", duration: "6 Days", image: "https://images.unsplash.com/photo-1555990538-c62f8f9c7d9a", prompt: "Plan a 6-day trip to Dubrovnik, Croatia." },
-    { title: "Swiss Alps", location: "Switzerland", duration: "7 Days", image: "https://images.unsplash.com/photo-1531310197839-ccf54634509e", prompt: "Plan a 7-day summer trip to the Swiss Alps, Switzerland." },
-    { title: "Iceland", location: "Europe", duration: "10 Days", image: "https://images.unsplash.com/photo-1476610182048-b716b8518aae", prompt: "Plan a 10-day road trip across Iceland in summer." },
+    { title: "Bali", location: "Indonesia", bestTime: "May – Sep", vibe: "Beach", vibeIcon: "🏖️", image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4", prompt: "Plan a leisure trip to Bali, Indonesia." },
+    { title: "Amalfi Coast", location: "Italy", bestTime: "Jun – Aug", vibe: "Scenic", vibeIcon: "🌊", image: "https://images.unsplash.com/photo-1533587851505-d119e13fa0d7", prompt: "Plan a scenic trip along the Amalfi Coast, Italy." },
+    { title: "Dubrovnik", location: "Croatia", bestTime: "Jun – Sep", vibe: "Leisure", vibeIcon: "⛵", image: "https://images.unsplash.com/photo-1555990538-c62f8f9c7d9a", prompt: "Plan a trip to Dubrovnik, Croatia." },
+    { title: "Swiss Alps", location: "Switzerland", bestTime: "Jun – Sep", vibe: "Adventure", vibeIcon: "🏔️", image: "https://images.unsplash.com/photo-1531310197839-ccf54634509e", prompt: "Plan a summer trip to the Swiss Alps, Switzerland." },
+    { title: "Iceland", location: "Europe", bestTime: "Jun – Aug", vibe: "Adventure", vibeIcon: "🌋", image: "https://images.unsplash.com/photo-1476610182048-b716b8518aae", prompt: "Plan a road trip across Iceland in summer." },
   ],
   autumn: [
-    { title: "Kyoto", location: "Japan", duration: "7 Days", image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e", prompt: "Plan a 7-day trip to Kyoto, Japan during autumn foliage season." },
-    { title: "New England", location: "USA", duration: "7 Days", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d", prompt: "Plan a 7-day road trip through New England, USA during fall foliage." },
-    { title: "Prague", location: "Czech Republic", duration: "5 Days", image: "https://images.unsplash.com/photo-1541849546-216549ae216d", prompt: "Plan a 5-day cultural trip to Prague, Czech Republic." },
-    { title: "Inca Trail", location: "Peru", duration: "8 Days", image: "https://images.unsplash.com/photo-1526392060635-9d6019884377", prompt: "Plan an 8-day guided trek along the Inca Trail, Peru." },
-    { title: "Istanbul", location: "Turkey", duration: "6 Days", image: "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200", prompt: "Plan a 6-day cultural trip to Istanbul, Turkey." },
+    { title: "Kyoto", location: "Japan", bestTime: "Oct – Nov", vibe: "Cultural", vibeIcon: "🍁", image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e", prompt: "Plan a trip to Kyoto, Japan during autumn foliage season." },
+    { title: "New England", location: "USA", bestTime: "Sep – Nov", vibe: "Scenic", vibeIcon: "🍂", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d", prompt: "Plan a road trip through New England, USA during fall foliage." },
+    { title: "Prague", location: "Czech Republic", bestTime: "Sep – Nov", vibe: "Cultural", vibeIcon: "🏰", image: "https://images.unsplash.com/photo-1541849546-216549ae216d", prompt: "Plan a cultural trip to Prague, Czech Republic." },
+    { title: "Inca Trail", location: "Peru", bestTime: "Apr – Oct", vibe: "Adventure", vibeIcon: "🥾", image: "https://images.unsplash.com/photo-1526392060635-9d6019884377", prompt: "Plan a guided trek along the Inca Trail, Peru." },
+    { title: "Istanbul", location: "Turkey", bestTime: "Sep – Nov", vibe: "Cultural", vibeIcon: "🕌", image: "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200", prompt: "Plan a cultural trip to Istanbul, Turkey." },
   ],
 };
 
-// --- MAIN LANDING PAGE COMPONENT ---
 export default function LandingPage() {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -133,7 +122,6 @@ export default function LandingPage() {
     { type: 'alert', text: 'Tokyo: Peak season alert' }
   ]);
 
-  // ✅ Season-based destinations
   const currentSeason = getSeason();
   const destinations = seasonDestinations[currentSeason];
 
@@ -158,28 +146,23 @@ export default function LandingPage() {
     fetchWeatherAlerts();
   }, []);
 
-  // ✅ Auth-protected navigation helper
   const handleProtectedNavigate = (path, state = {}) => {
+    const token = localStorage.getItem('token');
+    if (!token) navigate('/login');
+    else navigate(path, { state });
+  };
+
+  const handleCardClick = (item) => {
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/login');
     } else {
-      navigate(path, { state });
+      sessionStorage.removeItem('tripGenieState');
+      navigate('/chat', { state: { destination: item.title } });
     }
   };
 
-  // ✅ Card click — protected
-  const handleCardClick = (promptText) => {
-    handleProtectedNavigate('/response', { initialPrompt: promptText });
-  };
-
-  // ✅ Budget card click — protected
-  const handleBudgetClick = (tier) => {
-    handleProtectedNavigate('/chat');
-  };
-
   const [tripWidth, setTripWidth] = useState(500);
-
   useEffect(() => {
     const updateWidth = () => {
       const tripElement = document.getElementById("trip-text");
@@ -191,7 +174,6 @@ export default function LandingPage() {
   }, []);
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) setIsAuthenticated(true);
@@ -208,15 +190,7 @@ export default function LandingPage() {
 
   const [showNotifications, setShowNotifications] = useState(false);
   const notificationRef = useRef(null);
-
-  const { 
-    notifications, 
-    unreadCount, 
-    markAsRead, 
-    markAllRead,
-    deleteNotification,
-    isLoading 
-  } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllRead, deleteNotification, isLoading } = useNotifications();
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -234,30 +208,18 @@ export default function LandingPage() {
   };
 
   const touchStartX = useRef(null);
-
-  const handleTouchStart = (e) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
+  const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
   const handleTouchEnd = (e) => {
     if (!touchStartX.current) return;
-    const touchEndX = e.changedTouches[0].clientX;
-    const difference = touchStartX.current - touchEndX;
-    if (difference > 50) {
-      setCurrentIndex((prev) => (prev + 1) % destinations.length);
-    } else if (difference < -50) {
-      setCurrentIndex((prev) => prev === 0 ? destinations.length - 1 : prev - 1);
-    }
+    const diff = touchStartX.current - e.changedTouches[0].clientX;
+    if (diff > 50) setCurrentIndex((prev) => (prev + 1) % destinations.length);
+    else if (diff < -50) setCurrentIndex((prev) => prev === 0 ? destinations.length - 1 : prev - 1);
     touchStartX.current = null;
   };
 
   const [flippedIndex, setFlippedIndex] = useState(null);
+  const handleFlip = (index) => setFlippedIndex(flippedIndex === index ? null : index);
 
-  const handleFlip = (index) => {
-    setFlippedIndex(flippedIndex === index ? null : index);
-  };
-
-  // ✅ Season label for display
   const seasonLabels = {
     winter: '❄️ Winter Picks',
     spring: '🌸 Spring Picks',
@@ -268,27 +230,24 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen w-full bg-[#0B1D26] text-white font-sans overflow-x-hidden scroll-smooth">
       
-      {/* 1. STICKY NAV BAR */}
+      {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-[100] flex justify-center pt-8 px-10 pointer-events-none">
         <div className="flex items-center justify-center bg-[#0B1D26]/40 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-2.5 pointer-events-auto shadow-2xl">
           <div className="flex items-center gap-1">
             {['Home', 'About', 'Gallery', 'Feature', 'Contact Us'].map((item) => (
-              <button 
-                key={item}
+              <button key={item}
                 onClick={() => {
                   const idMap = { 'Home': 'hero', 'About': 'popular-destinations', 'Gallery': 'budget', 'Feature': 'map', 'Contact Us': 'footer' };
                   document.getElementById(idMap[item])?.scrollIntoView({ behavior: 'smooth' });
                 }}
                 className="px-4 py-1 text-[14px] font-black uppercase tracking-[0.15em] text-white hover:text-[#56B7DF] transition-all"
-              >
-                {item}
-              </button>
+              >{item}</button>
             ))}
           </div>
         </div>
       </nav>
 
-      {/* 2. HERO SECTION */}
+      {/* HERO */}
       <section id="hero" className="relative h-screen w-full flex flex-col overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img src={HikerHero} className="w-full h-full object-cover" alt="Hero" />
@@ -301,22 +260,15 @@ export default function LandingPage() {
             <Mountain className="text-white w-8 h-8" />
             <span className="text-white font-black tracking-[0.4em] text-xs uppercase">Trip Genie</span>
           </div>
-
           <div className="flex items-center gap-5">
             {!isAuthenticated ? (
-              <button
-                onClick={() => navigate('/login')}
-                className="flex items-center gap-3 bg-[#56B7DF] px-8 py-4 rounded-[2rem] font-black text-[10px] uppercase tracking-widest shadow-[0_4px_20px_rgba(86,183,223,0.15)] hover:bg-[#68c6eb] transition-all active:scale-95 text-[#0B1D26]"
-              >
+              <button onClick={() => navigate('/login')} className="flex items-center gap-3 bg-[#56B7DF] px-8 py-4 rounded-[2rem] font-black text-[10px] uppercase tracking-widest shadow-[0_4px_20px_rgba(86,183,223,0.15)] hover:bg-[#68c6eb] transition-all active:scale-95 text-[#0B1D26]">
                 <User size={16} /> Sign In
               </button>
             ) : (
               <>
                 <div className="relative" ref={notificationRef}>
-                  <div
-                    onClick={() => setShowNotifications(!showNotifications)}
-                    className="relative cursor-pointer"
-                  >
+                  <div onClick={() => setShowNotifications(!showNotifications)} className="relative cursor-pointer">
                     <Bell size={22} className="text-white hover:text-[#56B7DF] transition-all" />
                     {unreadCount > 0 && (
                       <span className="absolute -top-2 -right-2 w-4 h-4 bg-[#56B7DF] text-[9px] flex items-center justify-center rounded-full text-[#0B1D26] font-bold">
@@ -324,22 +276,16 @@ export default function LandingPage() {
                       </span>
                     )}
                   </div>
-
                   {showNotifications && (
                     <div className="absolute right-0 mt-4 w-96 bg-[#0B1D26] border border-white/10 rounded-2xl shadow-xl backdrop-blur-xl overflow-hidden">
                       <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
                         <h3 className="text-white font-bold text-sm">Notifications</h3>
                         {unreadCount > 0 && (
-                          <button
-                            onClick={markAllRead}
-                            className="flex items-center gap-1.5 text-[#56B7DF] text-[10px] font-black uppercase tracking-widest hover:text-white transition-all"
-                          >
-                            <CheckCheck size={12} />
-                            Mark all read
+                          <button onClick={markAllRead} className="flex items-center gap-1.5 text-[#56B7DF] text-[10px] font-black uppercase tracking-widest hover:text-white transition-all">
+                            <CheckCheck size={12} /> Mark all read
                           </button>
                         )}
                       </div>
-
                       <div className="max-h-80 overflow-y-auto">
                         {isLoading ? (
                           <div className="p-6 text-center text-white/40 text-xs">Loading...</div>
@@ -352,9 +298,7 @@ export default function LandingPage() {
                           notifications.map(n => {
                             const config = severityConfig[n.severity] || severityConfig.info;
                             return (
-                              <div
-                                key={n._id}
-                                onClick={() => handleNotificationClick(n)}
+                              <div key={n._id} onClick={() => handleNotificationClick(n)}
                                 className={`flex items-start gap-3 px-4 py-3 border-b border-white/5 cursor-pointer hover:bg-white/5 transition-all ${config.border} ${config.bg} ${!n.isRead ? 'opacity-100' : 'opacity-50'}`}
                               >
                                 <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${config.dot}`} />
@@ -368,10 +312,7 @@ export default function LandingPage() {
                                   <p className="text-white/60 text-[11px] leading-relaxed line-clamp-2">{n.message}</p>
                                   <p className="text-white/25 text-[10px] mt-1.5 font-bold uppercase tracking-widest">{formatTime(n.createdAt)}</p>
                                 </div>
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); deleteNotification(n._id); }}
-                                  className="text-white/20 hover:text-red-400 transition-all flex-shrink-0 mt-0.5"
-                                >
+                                <button onClick={(e) => { e.stopPropagation(); deleteNotification(n._id); }} className="text-white/20 hover:text-red-400 transition-all flex-shrink-0 mt-0.5">
                                   <X size={12} />
                                 </button>
                               </div>
@@ -379,13 +320,9 @@ export default function LandingPage() {
                           })
                         )}
                       </div>
-
                       {notifications.length > 0 && (
                         <div className="px-4 py-3 border-t border-white/10">
-                          <button
-                            onClick={() => { navigate('/watchlist'); setShowNotifications(false); }}
-                            className="w-full text-center text-[10px] font-black uppercase tracking-widest text-[#56B7DF] hover:text-white transition-all"
-                          >
+                          <button onClick={() => { navigate('/watchlist'); setShowNotifications(false); }} className="w-full text-center text-[10px] font-black uppercase tracking-widest text-[#56B7DF] hover:text-white transition-all">
                             View Watchlist →
                           </button>
                         </div>
@@ -393,11 +330,7 @@ export default function LandingPage() {
                     </div>
                   )}
                 </div>
-
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-3 rounded-[2rem] text-white text-[10px] uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95"
-                >
+                <button onClick={handleLogout} className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-3 rounded-[2rem] text-white text-[10px] uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95">
                   Logout
                 </button>
               </>
@@ -405,74 +338,46 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* CENTER HERO TEXT */}
+        {/* HERO TEXT */}
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-4">
-          <span className="text-[#56B7DF] text-[10px] font-black uppercase tracking-[0.8em] mb-6">
-            Agentic Travel Intelligence
-          </span>
+          <span className="text-[#56B7DF] text-[10px] font-black uppercase tracking-[0.8em] mb-6">Agentic Travel Intelligence</span>
           <h1 className="text-7xl md:text-[130px] font-black tracking-tighter uppercase leading-[0.85]">
             Find Your <br />
-            <span
-              id="trip-text"
-              className="inline-block text-transparent"
-              style={{ WebkitTextStroke: '2px white' }}
-            >
-              Trip
-            </span>
+            <span id="trip-text" className="inline-block text-transparent" style={{ WebkitTextStroke: '2px white' }}>Trip</span>
           </h1>
-          <button
-            onClick={() => document.getElementById('popular-destinations')?.scrollIntoView({ behavior: 'smooth' })}
-            className="mt-12 w-12 h-12 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-md animate-bounce"
-          >
+          <button onClick={() => document.getElementById('popular-destinations')?.scrollIntoView({ behavior: 'smooth' })}
+            className="mt-12 w-12 h-12 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-md animate-bounce">
             <ChevronDown size={20} className="text-[#56B7DF]" />
           </button>
         </div>
 
-        {/* TRY TRIPGENIE BUTTON — ✅ protected */}
+        {/* TRY TRIPGENIE BUTTON */}
         <div className="relative z-20 w-full flex justify-center pb-20">
-          <button
-            onClick={() => handleProtectedNavigate('/chat')}
-            style={{ width: tripWidth }}
-            className="h-[74px] rounded-full flex items-center justify-center gap-3 text-white text-[16px] font-medium tracking-wide bg-gradient-to-r from-[#0E2F3A] to-[#124453] backdrop-blur-xl border border-[#1F5B6E] shadow-[0_10px_40px_rgba(0,0,0,0.5)] hover:scale-105 active:scale-95 transition-all duration-300"
-          >
-            Try TripGenie
-            <span className="text-lg">↗</span>
+          <button onClick={() => handleProtectedNavigate('/chat')} style={{ width: tripWidth }}
+            className="h-[74px] rounded-full flex items-center justify-center gap-3 text-white text-[16px] font-medium tracking-wide bg-gradient-to-r from-[#0E2F3A] to-[#124453] backdrop-blur-xl border border-[#1F5B6E] shadow-[0_10px_40px_rgba(0,0,0,0.5)] hover:scale-105 active:scale-95 transition-all duration-300">
+            Try TripGenie <span className="text-lg">↗</span>
           </button>
         </div>
       </section>
 
-      {/* 3. POPULAR DESTINATIONS — ✅ Season-based */}
+      {/* POPULAR DESTINATIONS */}
       <section id="popular-destinations" className="bg-[#0B1D26] pt-32 pb-48">
         <div className="max-w-[1400px] mx-auto px-12 text-center md:text-left">
           <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-8">
             <div>
-              <span className="text-[#56B7DF] text-xs font-black uppercase tracking-[0.5em]">
-                {seasonLabels[currentSeason]}
-              </span>
-              <h2 className="text-8xl font-black mt-5 text-white tracking-tighter uppercase leading-none">
-                Popular <br /> Destinations
-              </h2>
+              <span className="text-[#56B7DF] text-xs font-black uppercase tracking-[0.5em]">{seasonLabels[currentSeason]}</span>
+              <h2 className="text-8xl font-black mt-5 text-white tracking-tighter uppercase leading-none">Popular <br /> Destinations</h2>
             </div>
           </div>
-          <div
-            className="relative flex items-center justify-center h-[500px]"
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          >
+          <div className="relative flex items-center justify-center h-[500px]" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
             {destinations.map((item, index) => (
               <TrekkingCard 
-                key={index} 
-                item={item} 
-                index={index} 
-                currentIndex={currentIndex} 
-                total={destinations.length} 
-                onClickCenter={setCurrentIndex} 
-                onInitiate={handleCardClick}  // ✅ protected
+                key={index} item={item} index={index} currentIndex={currentIndex}
+                total={destinations.length} onClickCenter={setCurrentIndex}
+                onInitiate={handleCardClick}
               />
             ))}
           </div>
-
-          {/* ✅ Login prompt for unauthenticated users */}
           {!isAuthenticated && (
             <p className="text-center text-white/40 text-xs font-bold uppercase tracking-widest mt-8">
               <button onClick={() => navigate('/login')} className="text-[#56B7DF] hover:underline">Sign in</button> to explore destinations
@@ -481,14 +386,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 4. BUDGET OPTIMIZATION — ✅ protected */}
+      {/* BUDGET OPTIMIZATION */}
       <section id="budget" className="py-32 bg-[#0B1D26]">
         <div className="max-w-7xl mx-auto px-10">
           <div className="mb-20 text-center">
             <span className="text-[#56B7DF] text-[10px] font-black uppercase tracking-[0.6em]">Financial Agent</span>
             <h2 className="text-5xl font-bold mt-4 text-white tracking-tighter">Budget Optimization</h2>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
               { tier: "Backpacker", price: "800", score: "98%", features: ["Hostels", "Local Transport", "Street Food"] },
@@ -497,8 +401,6 @@ export default function LandingPage() {
             ].map((plan, i) => (
               <div key={i} className="relative h-[420px] perspective">
                 <div className={`relative w-full h-full transition-transform duration-700 preserve-3d ${flippedIndex === i ? "rotate-y-180" : ""}`}>
-
-                  {/* FRONT SIDE */}
                   <div className="absolute inset-0 backface-hidden">
                     <div className="group bg-white/5 border border-white/10 p-10 rounded-[3rem] h-full flex flex-col justify-between transition-all hover:border-[#56B7DF]/50">
                       <div>
@@ -523,11 +425,8 @@ export default function LandingPage() {
                         onClick={(e) => {
                           e.stopPropagation();
                           const token = localStorage.getItem('token');
-                          if (!token) {
-                            navigate('/login');
-                          } else {
-                            handleFlip(i);
-                          }
+                          if (!token) navigate('/login');
+                          else handleFlip(i);
                         }}
                         className="relative w-full py-4 rounded-2xl bg-white/5 border border-white/10 group/btn overflow-hidden transition-all flex items-center justify-center"
                       >
@@ -536,14 +435,10 @@ export default function LandingPage() {
                       </button>
                     </div>
                   </div>
-
-                  {/* BACK SIDE */}
                   <div className="absolute inset-0 backface-hidden rotate-y-180">
                     <div className="bg-white/5 border border-white/10 p-10 rounded-[3rem] h-full flex flex-col justify-center items-center text-center">
                       <h3 className="text-white text-xl font-bold mb-4">{plan.tier} Plan Analysis</h3>
-                      <p className="text-white/60 text-sm mb-6 max-w-xs">
-                        This plan is optimized for cost efficiency, travel flexibility, and destination balance.
-                      </p>
+                      <p className="text-white/60 text-sm mb-6 max-w-xs">This plan is optimized for cost efficiency, travel flexibility, and destination balance.</p>
                       <button onClick={() => handleFlip(i)} className="text-[#56B7DF] text-sm font-semibold">← Go Back</button>
                     </div>
                   </div>
@@ -554,17 +449,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 5. MAP SECTION */}
+      {/* MAP SECTION */}
       <section id="map" className="py-32 bg-[#0B1D26] overflow-hidden">
         <div className="max-w-7xl mx-auto px-10">
           <div className="text-center mb-20">
             <span className="text-[#56B7DF] text-[10px] font-black uppercase tracking-[0.6em]">Global Coverage</span>
-            <h2 className="text-5xl md:text-6xl font-bold mt-5 text-white tracking-tighter leading-tight">
-              Discover the world <br /> through our eyes
-            </h2>
+            <h2 className="text-5xl md:text-6xl font-bold mt-5 text-white tracking-tighter leading-tight">Discover the world <br /> through our eyes</h2>
           </div>
-
-          {/* Live Intel Marquee */}
           <section className="bg-[#0B1D26] py-10">
             <style>{`
               @keyframes marquee-ltr { 0% { transform: translateX(-50%); } 100% { transform: translateX(0%); } }
@@ -593,8 +484,6 @@ export default function LandingPage() {
               </div>
             </div>
           </section>
-
-          {/* Leaflet Map */}
           <div className="relative w-full aspect-[21/9] rounded-[4rem] overflow-hidden border border-white/5 shadow-2xl">
             <MapContainer center={[20, 0]} zoom={2} scrollWheelZoom={false} zoomControl={false} className="w-full h-full z-10">
               <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -613,7 +502,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 6. FOOTER */}
+      {/* FOOTER */}
       <footer id="footer" className="w-full bg-[#0B1D26] pt-20 pb-20">
         <div className="bg-[#08151B] py-12 border-t border-white/5">
           <div className="max-w-7xl mx-auto px-10 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] font-black text-white/20 uppercase tracking-[0.5em]">

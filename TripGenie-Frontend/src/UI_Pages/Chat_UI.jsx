@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Calendar, Users, DollarSign, Sparkles, Loader2, Globe, Bookmark, BookmarkCheck, ArrowLeft, ArrowRight, RotateCcw } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const AI_BASE_URL = "http://localhost:8000";
 const USER_BASE_URL = "http://localhost:5000";
 
-// ✅ Persist state across navigation using sessionStorage
 const loadSavedState = () => {
   try {
     const saved = sessionStorage.getItem('tripGenieState');
@@ -21,31 +20,43 @@ const saveState = (state) => {
 
 export default function TripInputForm() {
   const navigate = useNavigate();
-  const savedState = loadSavedState();
+  const location = useLocation();
 
-  const [formData, setFormData] = useState(savedState?.formData || {
-    destination: '',
+  // ✅ Check if destination was passed from a card click
+  const prefilledDestination = location.state?.destination || '';
+
+  // ✅ THE FIX: 
+  // - If coming from a card → ignore sessionStorage, use prefilled destination
+  // - If coming from "Try TripGenie" button → clear sessionStorage, start fresh
+  // - Never load old sessionStorage when arriving fresh
+  useEffect(() => {
+    if (!prefilledDestination) {
+      sessionStorage.removeItem('tripGenieState');
+    }
+  }, []);
+
+  const [formData, setFormData] = useState({
+    destination: prefilledDestination,
     startDate: '',
     endDate: '',
     guests: 1,
     budget: 'mid-range',
     tripType: 'leisure'
   });
+
   const [isLoading, setIsLoading] = useState(false);
-  const [response, setResponse] = useState(savedState?.response || null);
+  const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
   const [isSavingToWatchlist, setIsSavingToWatchlist] = useState(false);
-  const [savedToWatchlist, setSavedToWatchlist] = useState(savedState?.savedToWatchlist || false);
-  const [currentTripData, setCurrentTripData] = useState(savedState?.currentTripData || null);
+  const [savedToWatchlist, setSavedToWatchlist] = useState(false);
+  const [currentTripData, setCurrentTripData] = useState(null);
 
   const userId = localStorage.getItem('userId');
 
-  // ✅ Persist state whenever it changes
   useEffect(() => {
     saveState({ formData, response, savedToWatchlist, currentTripData });
   }, [formData, response, savedToWatchlist, currentTripData]);
 
-  // ✅ Format display date as DD/MM/YYYY
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const [year, month, day] = dateString.split('-');
@@ -57,7 +68,6 @@ export default function TripInputForm() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Reset everything for a new prompt
   const handleNewPrompt = () => {
     setFormData({
       destination: '',
@@ -148,7 +158,7 @@ export default function TripInputForm() {
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-sky-50 via-cyan-50 to-blue-100 flex flex-col items-center p-6">
 
-      {/* ✅ Fixed Back Button — properly anchored top left */}
+      {/* Back Button */}
       <div className="w-full max-w-7xl mb-6 mt-2">
         <button
           type="button"
@@ -165,7 +175,13 @@ export default function TripInputForm() {
         <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-sky-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent mb-4">
           Where to next?
         </h1>
-        <p className="text-sky-700 text-lg font-medium">Plan your perfect getaway with TripGenie ✨</p>
+        {prefilledDestination ? (
+          <p className="text-sky-700 text-lg font-medium">
+            Planning a trip to <span className="font-bold text-cyan-600">{prefilledDestination}</span> ✨ Fill in the rest to get started!
+          </p>
+        ) : (
+          <p className="text-sky-700 text-lg font-medium">Plan your perfect getaway with TripGenie ✨</p>
+        )}
       </div>
 
       {/* Main Search Bar */}
@@ -176,7 +192,11 @@ export default function TripInputForm() {
 
             {/* Destination */}
             <div className="relative group flex-[1.8] min-w-35">
-              <div className="bg-gradient-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-5 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md">
+              <div className={`backdrop-blur-sm transition-all rounded-2xl px-5 pt-7 pb-3 h-20 border shadow-sm hover:shadow-md ${
+                prefilledDestination
+                  ? 'bg-gradient-to-br from-cyan-100/80 to-sky-100/80 border-cyan-300/60'
+                  : 'bg-gradient-to-br from-sky-50/80 to-cyan-50/80 hover:from-sky-100/80 hover:to-cyan-100/80 border-sky-100/50'
+              }`}>
                 <label className="absolute top-2.5 left-5 text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5" />
                   Destination
@@ -200,7 +220,6 @@ export default function TripInputForm() {
                   <Calendar className="w-3.5 h-3.5" />
                   Check In
                 </label>
-                {/* ✅ lang attribute forces DD/MM/YYYY in supported browsers */}
                 <input
                   type="date"
                   name="startDate"
@@ -304,11 +323,7 @@ export default function TripInputForm() {
               disabled={isLoading || !formData.destination.trim() || !formData.startDate || !formData.endDate}
               className="w-20 h-20 bg-gradient-to-br from-sky-500 via-cyan-500 to-blue-500 hover:from-sky-600 hover:via-cyan-600 hover:to-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl hover:shadow-cyan-400/50 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
-              {isLoading ? (
-                <Loader2 className="w-7 h-7 animate-spin" />
-              ) : (
-                <Search className="w-7 h-7" />
-              )}
+              {isLoading ? <Loader2 className="w-7 h-7 animate-spin" /> : <Search className="w-7 h-7" />}
             </button>
 
           </div>
@@ -339,7 +354,6 @@ export default function TripInputForm() {
                   AI Travel Plan
                 </h2>
                 <div className="text-sm text-sky-700 space-y-1">
-                  {/* ✅ Dates shown as DD/MM/YYYY */}
                   <p>
                     <strong>From:</strong> {formatDate(response.startDate)}
                     <span className="mx-2">→</span>
@@ -349,10 +363,7 @@ export default function TripInputForm() {
                 </div>
               </div>
 
-              {/* ✅ Action Buttons */}
               <div className="flex flex-col items-end gap-2 flex-shrink-0">
-
-                {/* ✅ New Search Button */}
                 <button
                   type="button"
                   onClick={handleNewPrompt}
@@ -362,7 +373,6 @@ export default function TripInputForm() {
                   New Search
                 </button>
 
-                {/* ✅ Add to Watchlist → Saved! → Go to Watchlist */}
                 {userId && (
                   !savedToWatchlist ? (
                     <button
@@ -372,30 +382,22 @@ export default function TripInputForm() {
                       className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 active:scale-95 disabled:transform-none shadow-lg bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSavingToWatchlist ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Saving...
-                        </>
+                        <><Loader2 className="w-5 h-5 animate-spin" />Saving...</>
                       ) : (
-                        <>
-                          <Bookmark className="w-5 h-5" />
-                          Add to Watchlist
-                        </>
+                        <><Bookmark className="w-5 h-5" />Add to Watchlist</>
                       )}
                     </button>
                   ) : (
                     <div className="flex flex-col items-end gap-2">
                       <div className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-green-500 text-white shadow-lg">
-                        <BookmarkCheck className="w-5 h-5" />
-                        Saved!
+                        <BookmarkCheck className="w-5 h-5" />Saved!
                       </div>
                       <button
                         type="button"
                         onClick={() => navigate('/watchlist')}
                         className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 active:scale-95 shadow-lg bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white"
                       >
-                        Go to Watchlist
-                        <ArrowRight className="w-5 h-5" />
+                        Go to Watchlist <ArrowRight className="w-5 h-5" />
                       </button>
                     </div>
                   )
