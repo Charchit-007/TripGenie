@@ -94,32 +94,32 @@ const getSeason = () => {
 
 const seasonDestinations = {
   winter: [
-    { title: "Swiss Alps", location: "Switzerland", duration: "7 Days", image: "https://images.unsplash.com/photo-1531310197839-ccf54634509e", prompt: "Plan a 7-day winter trip to Swiss Alps, Switzerland." },
+    { title: "Maldives", location: "Indian Ocean", duration: "5 Days", image: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8", prompt: "Plan a 5-day romantic beach trip to the Maldives." },
     { title: "Rajasthan", location: "India", duration: "10 Days", image: "https://images.unsplash.com/photo-1477587458883-47145ed94245", prompt: "Plan a 10-day cultural trip to Rajasthan, India." },
-    { title: "Maldives", location: "Asia", duration: "5 Days", image: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8", prompt: "Plan a 5-day romantic trip to Maldives." },
-    { title: "K2 Base Camp", location: "Pakistan", duration: "3 Weeks", image: "https://images.unsplash.com/photo-1533130061792-64b345e4a833", prompt: "Plan a 3-week expedition to K2 Base Camp, Pakistan." },
+    { title: "Dubai", location: "UAE", duration: "6 Days", image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c", prompt: "Plan a 6-day luxury trip to Dubai, UAE." },
+    { title: "Bangkok", location: "Thailand", duration: "7 Days", image: "https://images.unsplash.com/photo-1508009603885-50cf7c579365", prompt: "Plan a 7-day leisure trip to Bangkok, Thailand." },
     { title: "Queenstown", location: "New Zealand", duration: "8 Days", image: "https://images.unsplash.com/photo-1507699622108-4be3abd695ad", prompt: "Plan an 8-day adventure trip to Queenstown, New Zealand." },
   ],
   spring: [
     { title: "Kyoto", location: "Japan", duration: "7 Days", image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e", prompt: "Plan a 7-day cultural trip to Kyoto, Japan during cherry blossom season." },
-    { title: "Tuscany", location: "Italy", duration: "10 Days", image: "https://images.unsplash.com/photo-1533104816931-20fa691ff6ca", prompt: "Plan a 10-day leisure trip to Tuscany, Italy." },
-    { title: "Amsterdam", location: "Netherlands", duration: "5 Days", image: "https://images.unsplash.com/photo-1512470876302-972faa2aa9a4", prompt: "Plan a 5-day trip to Amsterdam, Netherlands during tulip season." },
-    { title: "Patagonia", location: "Argentina", duration: "2 Weeks", image: "https://images.unsplash.com/photo-1501854140801-50d01698950b", prompt: "Plan a 2-week adventure trip to Patagonia, Argentina." },
     { title: "Santorini", location: "Greece", duration: "6 Days", image: "https://images.unsplash.com/photo-1469796466635-455ede028aca", prompt: "Plan a 6-day romantic trip to Santorini, Greece." },
+    { title: "Amsterdam", location: "Netherlands", duration: "5 Days", image: "https://images.unsplash.com/photo-1512470876302-972faa2aa9a4", prompt: "Plan a 5-day trip to Amsterdam, Netherlands during tulip season." },
+    { title: "Tuscany", location: "Italy", duration: "8 Days", image: "https://images.unsplash.com/photo-1533104816931-20fa691ff6ca", prompt: "Plan an 8-day leisure trip through Tuscany, Italy." },
+    { title: "Barcelona", location: "Spain", duration: "6 Days", image: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4", prompt: "Plan a 6-day cultural trip to Barcelona, Spain." },
   ],
   summer: [
     { title: "Bali", location: "Indonesia", duration: "8 Days", image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4", prompt: "Plan an 8-day leisure trip to Bali, Indonesia." },
-    { title: "Amalfi Coast", location: "Italy", duration: "7 Days", image: "https://images.unsplash.com/photo-1533587851505-d119e13fa0d7", prompt: "Plan a 7-day trip to the Amalfi Coast, Italy." },
-    { title: "Iceland", location: "Europe", duration: "10 Days", image: "https://images.unsplash.com/photo-1476610182048-b716b8518aae", prompt: "Plan a 10-day adventure trip to Iceland in summer." },
-    { title: "Annapurna", location: "Nepal", duration: "12 Days", image: "https://images.unsplash.com/photo-1544735716-392fe2489ffa", prompt: "Plan a 12-day trekking trip to Annapurna Circuit, Nepal." },
+    { title: "Amalfi Coast", location: "Italy", duration: "7 Days", image: "https://images.unsplash.com/photo-1533587851505-d119e13fa0d7", prompt: "Plan a 7-day scenic trip along the Amalfi Coast, Italy." },
     { title: "Dubrovnik", location: "Croatia", duration: "6 Days", image: "https://images.unsplash.com/photo-1555990538-c62f8f9c7d9a", prompt: "Plan a 6-day trip to Dubrovnik, Croatia." },
+    { title: "Swiss Alps", location: "Switzerland", duration: "7 Days", image: "https://images.unsplash.com/photo-1531310197839-ccf54634509e", prompt: "Plan a 7-day summer trip to the Swiss Alps, Switzerland." },
+    { title: "Iceland", location: "Europe", duration: "10 Days", image: "https://images.unsplash.com/photo-1476610182048-b716b8518aae", prompt: "Plan a 10-day road trip across Iceland in summer." },
   ],
   autumn: [
+    { title: "Kyoto", location: "Japan", duration: "7 Days", image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e", prompt: "Plan a 7-day trip to Kyoto, Japan during autumn foliage season." },
     { title: "New England", location: "USA", duration: "7 Days", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d", prompt: "Plan a 7-day road trip through New England, USA during fall foliage." },
-    { title: "Kyoto", location: "Japan", duration: "8 Days", image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e", prompt: "Plan an 8-day trip to Kyoto, Japan during autumn foliage." },
-    { title: "Inca Trail", location: "Peru", duration: "10 Days", image: "https://images.unsplash.com/photo-1526392060635-9d6019884377", prompt: "Plan a 10-day trek along the Inca Trail, Peru." },
     { title: "Prague", location: "Czech Republic", duration: "5 Days", image: "https://images.unsplash.com/photo-1541849546-216549ae216d", prompt: "Plan a 5-day cultural trip to Prague, Czech Republic." },
-    { title: "Markha Valley", location: "Ladakh", duration: "1 Week", image: "https://images.unsplash.com/photo-1501785888041-af3ef285b470", prompt: "Plan a 1-week trekking trip to Markha Valley, Ladakh." },
+    { title: "Inca Trail", location: "Peru", duration: "8 Days", image: "https://images.unsplash.com/photo-1526392060635-9d6019884377", prompt: "Plan an 8-day guided trek along the Inca Trail, Peru." },
+    { title: "Istanbul", location: "Turkey", duration: "6 Days", image: "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200", prompt: "Plan a 6-day cultural trip to Istanbul, Turkey." },
   ],
 };
 
