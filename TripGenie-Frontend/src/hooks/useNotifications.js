@@ -1,4 +1,3 @@
-// hooks/useNotifications.js
 import { useState, useEffect, useCallback } from 'react';
 
 const BASE_URL = 'http://localhost:5000';

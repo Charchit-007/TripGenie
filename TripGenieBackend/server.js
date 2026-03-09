@@ -14,13 +14,14 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', require('./routes/AuthRoutes'));
-app.use('/api/watchlist', require('./routes/watchlist')); 
+app.use('/api/trips', require('./routes/trips')); // Updated to use trips.js for watchlist functionality
 app.use('/api/notifications', require('./routes/notifications'));
+//Admin routes
+app.use('/api/admin/auth', require('./routes/adminAuth'));
+app.use('/api/admin', require('./routes/admin'));
+
 const { startScheduler } = require('./services/notificationScheduler');
 startScheduler();
-
-// Your existing /query route for AI trip planning
-// app.post('/query', async (req, res) => { ... });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -2,51 +2,6 @@
 
 const mongoose = require('mongoose');
 
-const WatchlistItemSchema = new mongoose.Schema({
-  destination: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  startDate: {
-    type: Date,
-    required: true,
-  },
-  endDate: {
-    type: Date,
-    required: true,
-  },
-  guests: {
-    type: Number,
-    required: true,
-    min: 1,
-  },
-  budget: {
-    type: String,
-    enum: ['affordable', 'mid-range', 'luxury'],
-    required: true,
-  },
-  tripType: {
-    type: String,
-    enum: ['leisure', 'adventure', 'cultural', 'family', 'romantic', 'business'],
-    required: true,
-  },
-  aiResponse: {
-    type: String, // Store the AI-generated travel plan
-  },
-  previousAIResponse: {
-    type: String, // Store the previous AI-generated travel plan for comparison
-  },
-  isReplanned: {
-    type: Boolean,
-    default: false, // Indicates if the user has requested a replan
-  },
-  addedAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -65,8 +20,15 @@ const UserSchema = new mongoose.Schema({
     required: [true, 'Password is required'],
     minlength: [6, 'Password must be at least 6 characters long'],
   },
-  watchlist: [WatchlistItemSchema],
-  
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user',
+  },
+  isEmailVerified: {
+    type: Boolean,
+    default: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

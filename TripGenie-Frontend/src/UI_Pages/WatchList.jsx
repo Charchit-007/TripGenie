@@ -33,10 +33,10 @@ export default function WatchlistPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${BASE_URL}/api/watchlist/${userId}`);
+      const response = await fetch(`${BASE_URL}/api/trips/${userId}`);
       if (response.ok) {
         const data = await response.json();
-        setWatchlist(data.watchlist || []);
+        setWatchlist(data.trips || []);
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Failed to fetch watchlist');
@@ -52,7 +52,7 @@ export default function WatchlistPage() {
     if (!window.confirm('Are you sure you want to remove this trip from your watchlist?')) return;
     setDeletingId(itemId);
     try {
-      const response = await fetch(`${BASE_URL}/api/watchlist/${userId}/${itemId}`, {
+      const response = await fetch(`${BASE_URL}/api/trips/${itemId}`, {
         method: 'DELETE',
       });
       if (response.ok) {
@@ -134,7 +134,7 @@ export default function WatchlistPage() {
         <div className="mb-8">
           <button
             onClick={() => navigate('/home')}
-            className="flex items-center gap-2 text-sky-600 hover:text-sky-800 font-semibold transition-all mb-6 group"
+            className="flex items-center gap-2 text-sky-600 hover:text-sky-800 font-semibold transition-all mb-6 group cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             Back to Home
@@ -181,8 +181,8 @@ export default function WatchlistPage() {
               Start planning your dream vacation and save your favorite trips to your watchlist!
             </p>
             <button
-              onClick={() => navigate('/home')}
-              className="px-6 py-3 bg-gradient-to-r from-sky-500 to-cyan-500 text-white rounded-xl font-semibold hover:from-sky-600 hover:to-cyan-600 transition-all transform hover:scale-105 shadow-lg"
+              onClick={() => navigate('/chat')}
+              className="px-6 py-3 bg-gradient-to-r from-sky-500 to-cyan-500 text-white rounded-xl font-semibold hover:from-sky-600 hover:to-cyan-600 transition-all transform hover:scale-105 shadow-lg cursor-pointer"
             >
               Plan a Trip
             </button>
@@ -281,7 +281,7 @@ export default function WatchlistPage() {
                   {/* Added Date */}
                   <div className="flex items-center gap-2 text-xs text-sky-400 font-medium mb-4 pb-4 border-b border-sky-100">
                     <Clock className="w-3.5 h-3.5" />
-                    Added on {formatDate(trip.addedAt)}
+                    Added on {formatDate(trip.createdAt)}
                   </div>
 
                   {/* AI Response Section */}
@@ -402,7 +402,7 @@ export default function WatchlistPage() {
         )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }

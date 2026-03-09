@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Calendar, Users, DollarSign, Sparkles, Loader2, Globe, Bookmark, BookmarkCheck, ArrowLeft, ArrowRight, RotateCcw } from 'lucide-react';
+import { Search, MapPin, Calendar, Users, DollarSign, Sparkles, Loader2, Globe, Bookmark, BookmarkCheck, ArrowLeft, ArrowRight, RotateCcw,ChevronDown,Check, Palmtree } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const AI_BASE_URL = "http://localhost:8000";
@@ -50,6 +50,7 @@ export default function TripInputForm() {
   const [isSavingToWatchlist, setIsSavingToWatchlist] = useState(false);
   const [savedToWatchlist, setSavedToWatchlist] = useState(false);
   const [currentTripData, setCurrentTripData] = useState(null);
+  const [activeDropdown, setActiveDropdown] = useState(null);
 
   const userId = localStorage.getItem('userId');
 
@@ -136,7 +137,7 @@ export default function TripInputForm() {
     setError(null);
 
     try {
-      const res = await fetch(`${USER_BASE_URL}/api/watchlist/add`, {
+      const res = await fetch(`${USER_BASE_URL}/api/trips`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, ...currentTripData }),
@@ -159,16 +160,25 @@ export default function TripInputForm() {
     <div className="min-h-screen w-full bg-gradient-to-br from-sky-50 via-cyan-50 to-blue-100 flex flex-col items-center p-6">
 
       {/* Back Button */}
-      <div className="w-full max-w-7xl mb-6 mt-2">
-        <button
-          type="button"
-          onClick={() => navigate('/home')}
-          className="flex items-center gap-2 text-sky-600 hover:text-sky-800 font-semibold transition-all group w-fit"
-        >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          Back to Home
-        </button>
-      </div>
+      <div className="flex justify-between items-center w-full max-w-7xl mb-6 mt-2">
+      <button
+        type="button"
+        onClick={() => navigate('/home')}
+        className="flex items-center gap-2 text-sky-600 hover:text-sky-800 font-semibold transition-all group w-fit cursor-pointer"
+      >
+        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+        Back to Home
+      </button>
+      
+      <button
+        type="button"
+        onClick={() => navigate('/watchlist')}
+        className="flex items-center gap-2 px-4 py-2 bg-sky-600 text-white hover:bg-sky-700 font-semibold rounded-md transition-all w-fit cursor-pointer"
+      >
+        Watchlist
+        <Bookmark className="w-5 h-5" />
+      </button>
+    </div>
 
       {/* Header */}
       <div className="text-center mb-10">
@@ -226,7 +236,7 @@ export default function TripInputForm() {
                   value={formData.startDate}
                   onChange={handleChange}
                   lang="en-GB"
-                  className="w-full bg-transparent border-none outline-none text-sky-900 font-semibold text-sm pt-1"
+                  className="w-full bg-transparent border-none outline-none text-sky-900 font-semibold text-sm pt-1 cursor-pointer"
                   disabled={isLoading}
                 />
               </div>
@@ -245,7 +255,7 @@ export default function TripInputForm() {
                   value={formData.endDate}
                   onChange={handleChange}
                   lang="en-GB"
-                  className="w-full bg-transparent border-none outline-none text-sky-900 font-semibold text-sm pt-1"
+                  className="w-full bg-transparent border-none outline-none text-sky-900 font-semibold text-sm pt-1 cursor-pointer"
                   disabled={isLoading}
                 />
               </div>
@@ -265,63 +275,116 @@ export default function TripInputForm() {
                   max="20"
                   value={formData.guests}
                   onChange={handleChange}
-                  className="w-full bg-transparent border-none outline-none text-sky-900 font-semibold text-base pt-1"
+                  className="w-full bg-transparent border-none outline-none text-sky-900 font-semibold text-base pt-1 cursor-pointer"
                   disabled={isLoading}
                 />
               </div>
             </div>
 
-            {/* Budget */}
             <div className="relative flex-1 min-w-35">
-              <div className="bg-gradient-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md">
-                <label className="absolute top-2.5 left-4 text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1">
+              <div 
+                onClick={() => !isLoading && setActiveDropdown(activeDropdown === 'budget' ? null : 'budget')}
+                className="bg-gradient-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md cursor-pointer relative"
+              >
+                <label className="absolute top-2.5 left-4 text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1 cursor-pointer">
                   <DollarSign className="w-3.5 h-3.5" />
                   Budget
                 </label>
-                <select
-                  name="budget"
-                  value={formData.budget}
-                  onChange={handleChange}
-                  className="w-full bg-transparent border-none outline-none text-sky-900 font-semibold text-sm pt-1 appearance-none cursor-pointer"
-                  disabled={isLoading}
-                >
-                  <option value="affordable">Affordable</option>
-                  <option value="mid-range">Mid-Range</option>
-                  <option value="luxury">Luxury</option>
-                </select>
+                <div className="w-full text-sky-900 font-semibold text-sm pt-1 capitalize flex justify-between items-center">
+                  {formData.budget ? formData.budget.replace('-', ' ') : 'Select Budget'}
+                  <ChevronDown className={`w-4 h-4 transition-transform ${activeDropdown === 'budget' ? 'rotate-180' : ''}`} />
+                </div>
               </div>
+
+              {/* Budget Dropdown Popover */}
+              {activeDropdown === 'budget' && (
+                <div className="absolute top-full left-0 w-full mt-2 p-2 bg-white/95 backdrop-blur-md border border-sky-100 shadow-xl rounded-2xl z-50">
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { value: 'affordable', label: 'Budget', icon: '🪙' },
+                      { value: 'mid-range', label: 'Mid', icon: '💵' },
+                      { value: 'luxury', label: 'Luxury', icon: '💎' }
+                    ].map((opt) => (
+                      <div
+                        key={opt.value}
+                        onClick={() => {
+                          handleChange({ target: { name: 'budget', value: opt.value } });
+                          setActiveDropdown(null);
+                        }}
+                        className={`flex flex-col items-center justify-center gap-1 p-2 rounded-xl cursor-pointer transition-all border ${
+                          formData.budget === opt.value 
+                            ? 'bg-sky-50 border-sky-300 text-sky-700 shadow-inner' 
+                            : 'bg-transparent border-transparent hover:bg-sky-50/50 text-sky-600 hover:text-sky-800'
+                        }`}
+                      >
+                        <span className="text-xl">{opt.icon}</span>
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-center">{opt.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Trip Type */}
+            {/* Trip Type / Vibe - Icon Grid */}
             <div className="relative flex-[1.2] min-w-35">
-              <div className="bg-gradient-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md">
-                <label className="absolute top-2.5 left-4 text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1">
+              <div 
+                onClick={() => !isLoading && setActiveDropdown(activeDropdown === 'tripType' ? null : 'tripType')}
+                className="bg-gradient-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md cursor-pointer relative"
+              >
+                <label className="absolute top-2.5 left-4 text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1 cursor-pointer">
                   <Sparkles className="w-3.5 h-3.5" />
                   Vibe
                 </label>
-                <select
-                  name="tripType"
-                  value={formData.tripType}
-                  onChange={handleChange}
-                  className="w-full bg-transparent border-none outline-none text-sky-900 font-semibold text-sm pt-1 appearance-none cursor-pointer"
-                  disabled={isLoading}
-                >
-                  <option value="leisure">Leisure</option>
-                  <option value="adventure">Adventure</option>
-                  <option value="cultural">Cultural</option>
-                  <option value="family">Family</option>
-                  <option value="romantic">Romantic</option>
-                  <option value="business">Business</option>
-                </select>
+                <div className="w-full text-sky-900 font-semibold text-sm pt-1 capitalize flex justify-between items-center">
+                  {formData.tripType || 'Select Vibe'}
+                  <ChevronDown className={`w-4 h-4 transition-transform ${activeDropdown === 'tripType' ? 'rotate-180' : ''}`} />
+                </div>
               </div>
+
+              {/* Trip Type Dropdown Popover */}
+              {activeDropdown === 'tripType' && (
+                <div className="absolute top-full left-0 w-full mt-2 p-2 bg-white/95 backdrop-blur-md border border-sky-100 shadow-xl rounded-2xl z-50">
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { value: 'leisure', label: 'Leisure', icon: '🌴' },
+                      { value: 'adventure', label: 'Adventure', icon: '⛰️' },
+                      { value: 'cultural', label: 'Cultural', icon: '🏛️' },
+                      { value: 'family', label: 'Family', icon: '👨‍👩‍👧‍👦' },
+                      { value: 'romantic', label: 'Romantic', icon: '❤️' },
+                      { value: 'business', label: 'Business', icon: '💼' }
+                    ].map((opt) => (
+                      <div
+                        key={opt.value}
+                        onClick={() => {
+                          handleChange({ target: { name: 'tripType', value: opt.value } });
+                          setActiveDropdown(null);
+                        }}
+                        className={`flex flex-col items-center justify-center gap-1 p-2 rounded-xl cursor-pointer transition-all border ${
+                          formData.tripType === opt.value 
+                            ? 'bg-sky-50 border-sky-300 text-sky-700 shadow-inner' 
+                            : 'bg-transparent border-transparent hover:bg-sky-50/50 text-sky-600 hover:text-sky-800'
+                        }`}
+                      >
+                        <span className="text-xl">{opt.icon}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-center">{opt.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
+
+
+
+
 
             {/* Search Button */}
             <button
               type="button"
               onClick={handleSubmit}
               disabled={isLoading || !formData.destination.trim() || !formData.startDate || !formData.endDate}
-              className="w-20 h-20 bg-gradient-to-br from-sky-500 via-cyan-500 to-blue-500 hover:from-sky-600 hover:via-cyan-600 hover:to-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl hover:shadow-cyan-400/50 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-20 h-20 bg-gradient-to-br from-sky-500 via-cyan-500 to-blue-500 hover:from-sky-600 hover:via-cyan-600 hover:to-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl hover:shadow-cyan-400/50 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
             >
               {isLoading ? <Loader2 className="w-7 h-7 animate-spin" /> : <Search className="w-7 h-7" />}
             </button>
@@ -347,7 +410,7 @@ export default function TripInputForm() {
       {response && (
         <div className="w-full max-w-7xl pb-10">
           <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 p-8">
-            <div className="border-b border-sky-200 pb-4 mb-6 flex justify-between items-start gap-4">
+            <div classNam="border-b border-sky-200 pb-4 mb-6 flex justify-between items-start gap-4">
               <div>
                 <h2 className="text-3xl font-bold bg-gradient-to-r from-sky-600 to-cyan-600 bg-clip-text text-transparent flex items-center gap-2 mb-2">
                   <Globe className="w-8 h-8 text-cyan-600" />
@@ -367,7 +430,7 @@ export default function TripInputForm() {
                 <button
                   type="button"
                   onClick={handleNewPrompt}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all hover:scale-105 active:scale-95 shadow border border-sky-200 bg-white/60 text-sky-700 hover:bg-sky-50"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all hover:scale-105 active:scale-95 shadow border border-sky-200 bg-white/60 text-sky-700 hover:bg-sky-50 cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" />
                   New Search
@@ -379,7 +442,7 @@ export default function TripInputForm() {
                       type="button"
                       onClick={handleAddToWatchlist}
                       disabled={isSavingToWatchlist}
-                      className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 active:scale-95 disabled:transform-none shadow-lg bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 active:scale-95 disabled:transform-none shadow-lg bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                       {isSavingToWatchlist ? (
                         <><Loader2 className="w-5 h-5 animate-spin" />Saving...</>
@@ -395,7 +458,7 @@ export default function TripInputForm() {
                       <button
                         type="button"
                         onClick={() => navigate('/watchlist')}
-                        className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 active:scale-95 shadow-lg bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white"
+                        className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 active:scale-95 shadow-lg bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white cursor-pointer"
                       >
                         Go to Watchlist <ArrowRight className="w-5 h-5" />
                       </button>

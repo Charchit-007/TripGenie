@@ -28,7 +28,7 @@ const TrekkingCard = ({ item, index, currentIndex, total, onClickCenter, onIniti
   let styles = "translate-x-0 opacity-0 scale-50 pointer-events-none"; 
 
   if (isCenter) {
-    styles = "translate-x-0 translate-y-20 opacity-100 scale-110 z-40 shadow-[0_40px_80px_rgba(0,0,0,0.8)]";
+    styles = "translate-x-0 translate-y-20 opacity-100 scale-110 z-40 shadow-[0_40px_80px_rgba(0,0,0,0.8)] cursor-pointer";
   } else if (diff === -1) { 
     styles = "-translate-x-[85%] translate-y-0 opacity-90 scale-100 z-30 cursor-pointer";
   } else if (diff === 1) { 
@@ -240,7 +240,7 @@ export default function LandingPage() {
                   const idMap = { 'Home': 'hero', 'About': 'popular-destinations', 'Gallery': 'budget', 'Feature': 'map', 'Contact Us': 'footer' };
                   document.getElementById(idMap[item])?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="px-4 py-1 text-[14px] font-black uppercase tracking-[0.15em] text-white hover:text-[#56B7DF] transition-all"
+                className="px-4 py-1 text-[14px] font-black uppercase tracking-[0.15em] text-white hover:text-[#56B7DF] transition-all cursor-pointer"
               >{item}</button>
             ))}
           </div>
@@ -330,7 +330,7 @@ export default function LandingPage() {
                     </div>
                   )}
                 </div>
-                <button onClick={handleLogout} className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-3 rounded-[2rem] text-white text-[10px] uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95">
+                <button onClick={handleLogout} className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-3 rounded-[2rem] text-white text-[10px] uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95 cursor-pointer">
                   Logout
                 </button>
               </>
@@ -346,7 +346,7 @@ export default function LandingPage() {
             <span id="trip-text" className="inline-block text-transparent" style={{ WebkitTextStroke: '2px white' }}>Trip</span>
           </h1>
           <button onClick={() => document.getElementById('popular-destinations')?.scrollIntoView({ behavior: 'smooth' })}
-            className="mt-12 w-12 h-12 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-md animate-bounce">
+            className="mt-12 w-12 h-12 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-md animate-bounce cursor-pointer">
             <ChevronDown size={20} className="text-[#56B7DF]" />
           </button>
         </div>
@@ -354,7 +354,7 @@ export default function LandingPage() {
         {/* TRY TRIPGENIE BUTTON */}
         <div className="relative z-20 w-full flex justify-center pb-20">
           <button onClick={() => handleProtectedNavigate('/chat')} style={{ width: tripWidth }}
-            className="h-[74px] rounded-full flex items-center justify-center gap-3 text-white text-[16px] font-medium tracking-wide bg-gradient-to-r from-[#0E2F3A] to-[#124453] backdrop-blur-xl border border-[#1F5B6E] shadow-[0_10px_40px_rgba(0,0,0,0.5)] hover:scale-105 active:scale-95 transition-all duration-300">
+            className="h-[74px] rounded-full flex items-center justify-center gap-3 text-white text-[16px] font-medium tracking-wide bg-gradient-to-r from-[#0E2F3A] to-[#124453] backdrop-blur-xl border border-[#1F5B6E] shadow-[0_10px_40px_rgba(0,0,0,0.5)] hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer">
             Try TripGenie <span className="text-lg">↗</span>
           </button>
         </div>
@@ -430,8 +430,8 @@ export default function LandingPage() {
                         }}
                         className="relative w-full py-4 rounded-2xl bg-white/5 border border-white/10 group/btn overflow-hidden transition-all flex items-center justify-center"
                       >
-                        <div className="absolute inset-0 bg-[#56B7DF] translate-y-[101%] group-hover/btn:translate-y-0 transition-transform duration-300" />
-                        <span className="relative z-10 text-[11px] font-black uppercase tracking-[0.3em] group-hover/btn:text-[#0B1D26]">Analyze Plan</span>
+                        <div className="absolute inset-0 bg-[#56B7DF] translate-y-[101%] group-hover/btn:translate-y-0 transition-transform duration-300 cursor-pointer" />
+                        <span className="relative z-10 text-[11px] font-black uppercase tracking-[0.3em] group-hover/btn:text-[#0B1D26] cursor-pointer">Analyze Plan</span>
                       </button>
                     </div>
                   </div>
@@ -439,7 +439,7 @@ export default function LandingPage() {
                     <div className="bg-white/5 border border-white/10 p-10 rounded-[3rem] h-full flex flex-col justify-center items-center text-center">
                       <h3 className="text-white text-xl font-bold mb-4">{plan.tier} Plan Analysis</h3>
                       <p className="text-white/60 text-sm mb-6 max-w-xs">This plan is optimized for cost efficiency, travel flexibility, and destination balance.</p>
-                      <button onClick={() => handleFlip(i)} className="text-[#56B7DF] text-sm font-semibold">← Go Back</button>
+                      <button onClick={() => handleFlip(i)} className="text-[#56B7DF] text-sm font-semibold cursor-pointer">← Go Back</button>
                     </div>
                   </div>
                 </div>
