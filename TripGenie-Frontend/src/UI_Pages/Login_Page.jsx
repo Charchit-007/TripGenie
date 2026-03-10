@@ -56,41 +56,78 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-sky-50 via-cyan-50 to-blue-100 flex flex-col items-center justify-center p-6">
+    <div
+      className="min-h-screen w-full flex flex-col items-center justify-center p-6 relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(135deg, #0d2030 0%, #112840 35%, #0f3248 65%, #0d2030 100%)'
+      }}
+    >
+
+      {/* Subtle cyan glow top-right */}
+      <div className="fixed top-0 right-0 w-[600px] h-[600px] rounded-full blur-3xl pointer-events-none -z-10"
+        style={{ background: 'radial-gradient(circle, rgba(86,183,223,0.12) 0%, transparent 65%)' }} />
+      {/* Subtle cyan glow bottom-left */}
+      <div className="fixed bottom-0 left-0 w-[500px] h-[500px] rounded-full blur-3xl pointer-events-none -z-10"
+        style={{ background: 'radial-gradient(circle, rgba(86,183,223,0.08) 0%, transparent 65%)' }} />
 
       {/* Brand Header */}
-      <div className="mb-10 flex flex-col items-center gap-3">
+      <div className="mb-10 flex flex-col items-center gap-3 relative z-10">
         <div className="flex items-center gap-4">
-          <div className="p-2.5 border border-sky-300/50 rounded-xl bg-white/60 shadow-sm backdrop-blur-sm">
-            <Compass className="w-10 h-10 text-sky-500" />
+          <div
+            className="p-2.5 rounded-xl"
+            style={{
+              border: '1px solid rgba(86,183,223,0.35)',
+              background: 'rgba(86,183,223,0.10)',
+              backdropFilter: 'blur(12px)'
+            }}
+          >
+            <Compass className="w-10 h-10" style={{ color: '#56B7DF' }} />
           </div>
-          <h1 className="text-5xl font-black bg-gradient-to-r from-sky-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent tracking-tight uppercase leading-none">
-            Trip<span className="text-cyan-500">Genie</span>
+          <h1 className="text-5xl font-black tracking-tight uppercase leading-none text-white">
+            Trip<span style={{ color: '#56B7DF' }}>Genie</span>
           </h1>
         </div>
-        <p className="text-sky-600 text-xs font-black tracking-[0.4em] uppercase opacity-70 mt-1">
+        <p className="text-[10px] font-black tracking-[0.4em] uppercase mt-1"
+          style={{ color: '#56B7DF', opacity: 0.75 }}>
           Agentic Travel Intelligence
         </p>
       </div>
 
       {/* Main Authentication Card */}
-      <div className="w-full max-w-[440px] bg-white/70 backdrop-blur-xl rounded-3xl border border-white/60 shadow-2xl overflow-hidden">
+      <div
+        className="w-full max-w-[440px] rounded-3xl overflow-hidden relative z-10"
+        style={{
+          background: 'rgba(255,255,255,0.07)',
+          backdropFilter: 'blur(32px)',
+          border: '1px solid rgba(86,183,223,0.18)',
+          boxShadow: '0 25px 60px rgba(0,0,0,0.35), 0 0 40px rgba(86,183,223,0.07), inset 0 1px 0 rgba(255,255,255,0.07)'
+        }}
+      >
 
         {/* Tab Selection */}
-        <div className="flex bg-sky-50/80 border-b border-sky-100">
+        <div className="flex border-b"
+          style={{ background: 'rgba(86,183,223,0.04)', borderColor: 'rgba(86,183,223,0.12)' }}>
           <button
             onClick={() => setIsLogin(true)}
-            className={`flex-1 py-5 text-xs font-black uppercase tracking-[0.2em] transition-all relative ${isLogin ? 'text-sky-600' : 'text-sky-300 hover:text-sky-400'}`}
+            className="flex-1 py-5 text-xs font-black uppercase tracking-[0.2em] transition-all relative"
+            style={{ color: isLogin ? 'white' : 'rgba(86,183,223,0.38)' }}
           >
             Sign In
-            {isLogin && <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gradient-to-r from-sky-500 to-cyan-500 rounded-t" />}
+            {isLogin && (
+              <div className="absolute bottom-0 left-0 w-full h-[2px] rounded-t"
+                style={{ background: 'linear-gradient(to right, #56B7DF, #38bdf8)' }} />
+            )}
           </button>
           <button
             onClick={() => setIsLogin(false)}
-            className={`flex-1 py-5 text-xs font-black uppercase tracking-[0.2em] transition-all relative ${!isLogin ? 'text-sky-600' : 'text-sky-300 hover:text-sky-400'}`}
+            className="flex-1 py-5 text-xs font-black uppercase tracking-[0.2em] transition-all relative"
+            style={{ color: !isLogin ? 'white' : 'rgba(86,183,223,0.38)' }}
           >
             Register
-            {!isLogin && <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gradient-to-r from-sky-500 to-cyan-500 rounded-t" />}
+            {!isLogin && (
+              <div className="absolute bottom-0 left-0 w-full h-[2px] rounded-t"
+                style={{ background: 'linear-gradient(to right, #56B7DF, #38bdf8)' }} />
+            )}
           </button>
         </div>
 
@@ -98,12 +135,14 @@ export default function AuthPage() {
 
           {/* Error / Success */}
           {error && (
-            <div className="text-red-600 text-[10px] font-black uppercase text-center bg-red-50 py-3 rounded-xl border border-red-200">
+            <div className="text-red-400 text-[10px] font-black uppercase text-center py-3 rounded-xl border"
+              style={{ background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.25)' }}>
               {error}
             </div>
           )}
           {success && (
-            <div className="text-green-600 text-[10px] font-black uppercase text-center bg-green-50 py-3 rounded-xl border border-green-200">
+            <div className="text-green-400 text-[10px] font-black uppercase text-center py-3 rounded-xl border"
+              style={{ background: 'rgba(34,197,94,0.1)', borderColor: 'rgba(34,197,94,0.25)' }}>
               {success}
             </div>
           )}
@@ -113,15 +152,22 @@ export default function AuthPage() {
             {/* Name — Register only */}
             {!isLogin && (
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-sky-600 uppercase tracking-widest ml-1">Adventurer Name</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest ml-1"
+                  style={{ color: '#56B7DF' }}>Adventurer Name</label>
                 <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-sky-400" />
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4"
+                    style={{ color: '#56B7DF' }} />
                   <input
                     type="text"
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full bg-sky-50/80 border border-sky-100 rounded-2xl py-4 pl-12 pr-4 text-sm text-sky-900 font-semibold focus:outline-none focus:border-sky-400 transition-all placeholder:text-sky-300"
+                    className="w-full rounded-2xl py-4 pl-12 pr-4 text-sm font-semibold focus:outline-none transition-all placeholder:text-white/20"
+                    style={{
+                      background: 'rgba(86,183,223,0.09)',
+                      border: '1px solid rgba(86,183,223,0.22)',
+                      color: 'white',
+                    }}
                     placeholder="Enter full name"
                   />
                 </div>
@@ -130,15 +176,22 @@ export default function AuthPage() {
 
             {/* Email */}
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-sky-600 uppercase tracking-widest ml-1">Email Intel</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest ml-1"
+                style={{ color: '#56B7DF' }}>Email Intel</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-sky-400" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4"
+                  style={{ color: '#56B7DF' }} />
                 <input
                   type="email"
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full bg-sky-50/80 border border-sky-100 rounded-2xl py-4 pl-12 pr-4 text-sm text-sky-900 font-semibold focus:outline-none focus:border-sky-400 transition-all placeholder:text-sky-300"
+                  className="w-full rounded-2xl py-4 pl-12 pr-4 text-sm font-semibold focus:outline-none transition-all placeholder:text-white/20"
+                  style={{
+                    background: 'rgba(86,183,223,0.09)',
+                    border: '1px solid rgba(86,183,223,0.22)',
+                    color: 'white',
+                  }}
                   placeholder="agent@tripgenie.com"
                 />
               </div>
@@ -146,21 +199,29 @@ export default function AuthPage() {
 
             {/* Password */}
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-sky-600 uppercase tracking-widest ml-1">Security Key</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest ml-1"
+                style={{ color: '#56B7DF' }}>Security Key</label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-sky-400" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4"
+                  style={{ color: '#56B7DF' }} />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={formData.password}
                   onChange={handlePasswordChange}
-                  className="w-full bg-sky-50/80 border border-sky-100 rounded-2xl py-4 pl-12 pr-12 text-sm text-sky-900 font-semibold focus:outline-none focus:border-sky-400 transition-all placeholder:text-sky-300"
+                  className="w-full rounded-2xl py-4 pl-12 pr-12 text-sm font-semibold focus:outline-none transition-all placeholder:text-white/20"
+                  style={{
+                    background: 'rgba(86,183,223,0.09)',
+                    border: '1px solid rgba(86,183,223,0.22)',
+                    color: 'white',
+                  }}
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-sky-400 hover:text-sky-600 transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
+                  style={{ color: '#56B7DF' }}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -169,19 +230,23 @@ export default function AuthPage() {
 
             {/* Stay logged in / Forgot */}
             <div className="flex items-center justify-between py-1">
-              <label className="flex items-center gap-2 cursor-pointer group">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={formData.staySignedIn}
                   onChange={(e) => setFormData({ ...formData, staySignedIn: e.target.checked })}
-                  className="w-4 h-4 rounded border-sky-200 bg-sky-50 text-sky-500 focus:ring-0 focus:ring-offset-0"
+                  className="w-4 h-4 rounded focus:ring-0 focus:ring-offset-0"
+                  style={{ accentColor: '#56B7DF' }}
                 />
-                <span className="text-[10px] font-bold text-sky-400 uppercase tracking-widest group-hover:text-sky-600 transition-colors">
+                <span className="text-[10px] font-bold uppercase tracking-widest"
+                  style={{ color: 'rgba(86,183,223,0.65)' }}>
                   Stay Logged In
                 </span>
               </label>
               {isLogin && (
-                <button type="button" className="text-[10px] font-bold text-sky-500 uppercase tracking-widest hover:text-sky-700 transition-colors">
+                <button type="button"
+                  className="text-[10px] font-bold uppercase tracking-widest"
+                  style={{ color: '#56B7DF' }}>
                   Forgot Key?
                 </button>
               )}
@@ -190,7 +255,11 @@ export default function AuthPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full py-5 bg-gradient-to-r from-sky-500 via-cyan-500 to-blue-500 hover:from-sky-600 hover:via-cyan-600 hover:to-blue-600 text-white text-xs font-black uppercase tracking-[0.3em] rounded-2xl shadow-lg hover:shadow-cyan-400/50 transition-all transform hover:scale-[1.02] active:scale-95 mt-2"
+              className="w-full py-5 text-white text-xs font-black uppercase tracking-[0.3em] rounded-2xl transition-all transform hover:scale-[1.02] active:scale-95 mt-2"
+              style={{
+                background: 'linear-gradient(to right, #56B7DF, #38bdf8, #0ea5e9)',
+                boxShadow: '0 10px 35px rgba(86,183,223,0.4)'
+              }}
             >
               {isLogin ? 'Initiate Session' : 'Create Profile'}
             </button>
@@ -199,9 +268,10 @@ export default function AuthPage() {
           {/* Divider */}
           <div className="relative py-2 flex items-center justify-center">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-sky-100"></div>
+              <div className="w-full border-t" style={{ borderColor: 'rgba(86,183,223,0.15)' }}></div>
             </div>
-            <span className="relative bg-white/70 px-4 text-[8px] font-black text-sky-400 uppercase tracking-[0.5em]">
+            <span className="relative px-4 text-[8px] font-black uppercase tracking-[0.5em]"
+              style={{ background: 'transparent', color: 'rgba(86,183,223,0.5)' }}>
               Secure Protocol
             </span>
           </div>
@@ -210,13 +280,23 @@ export default function AuthPage() {
           <div className="grid grid-cols-2 gap-4">
             <button
               type="button"
-              className="flex items-center justify-center gap-2 py-4 bg-sky-50/80 border border-sky-100 rounded-2xl text-[9px] font-black text-sky-500 uppercase tracking-widest hover:bg-sky-100 transition-all"
+              className="flex items-center justify-center gap-2 py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all hover:scale-[1.02]"
+              style={{
+                background: 'rgba(86,183,223,0.09)',
+                border: '1px solid rgba(86,183,223,0.2)',
+                color: '#56B7DF'
+              }}
             >
               <Globe className="w-3.5 h-3.5" /> Google
             </button>
             <button
               type="button"
-              className="flex items-center justify-center gap-2 py-4 bg-sky-50/80 border border-sky-100 rounded-2xl text-[9px] font-black text-sky-500 uppercase tracking-widest hover:bg-sky-100 transition-all"
+              className="flex items-center justify-center gap-2 py-4 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all hover:scale-[1.02]"
+              style={{
+                background: 'rgba(86,183,223,0.09)',
+                border: '1px solid rgba(86,183,223,0.2)',
+                color: '#56B7DF'
+              }}
             >
               <Shield className="w-3.5 h-3.5" /> GitHub
             </button>
@@ -225,14 +305,12 @@ export default function AuthPage() {
       </div>
 
       {/* Footer */}
-      <div className="mt-10 flex flex-col items-center gap-2 opacity-40">
-        <Shield className="w-4 h-4 text-sky-500" />
-        <p className="text-[8px] font-black text-sky-600 uppercase tracking-[0.8em]">Secure Intelligence Protocol v2.0</p>
+      <div className="mt-10 flex flex-col items-center gap-2 relative z-10" style={{ opacity: 0.4 }}>
+        <Shield className="w-4 h-4" style={{ color: '#56B7DF' }} />
+        <p className="text-[8px] font-black uppercase tracking-[0.8em]" style={{ color: '#56B7DF' }}>
+          Secure Intelligence Protocol v2.0
+        </p>
       </div>
-
-      {/* Decorative blobs */}
-      <div className="fixed top-20 left-10 w-96 h-96 bg-cyan-300/20 rounded-full blur-3xl pointer-events-none -z-10"></div>
-      <div className="fixed bottom-20 right-10 w-96 h-96 bg-sky-300/20 rounded-full blur-3xl pointer-events-none -z-10"></div>
     </div>
   );
 }

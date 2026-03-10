@@ -156,58 +156,99 @@ export default function TripInputForm() {
     }
   };
 
-  return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-sky-50 via-cyan-50 to-blue-100 flex flex-col items-center p-6">
+  // Shared field styles
+  const fieldStyle = {
+    background: 'rgba(86,183,223,0.09)',
+    border: '1px solid rgba(86,183,223,0.22)',
+  };
 
-      {/* Back Button */}
+  const fieldStylePrefilled = {
+    background: 'rgba(86,183,223,0.18)',
+    border: '1px solid rgba(86,183,223,0.45)',
+  };
+
+  return (
+    <div
+      className="min-h-screen w-full flex flex-col items-center p-6 relative overflow-x-hidden"
+      style={{ background: 'linear-gradient(135deg, #0d2030 0%, #112840 35%, #0f3248 65%, #0d2030 100%)' }}
+    >
+
+      {/* Background glows */}
+      <div className="fixed top-0 right-0 w-[600px] h-[600px] rounded-full blur-3xl pointer-events-none -z-10"
+        style={{ background: 'radial-gradient(circle, rgba(86,183,223,0.10) 0%, transparent 65%)' }} />
+      <div className="fixed bottom-0 left-0 w-[500px] h-[500px] rounded-full blur-3xl pointer-events-none -z-10"
+        style={{ background: 'radial-gradient(circle, rgba(86,183,223,0.07) 0%, transparent 65%)' }} />
+
+      {/* Top Bar */}
       <div className="flex justify-between items-center w-full max-w-7xl mb-6 mt-2">
-      <button
-        type="button"
-        onClick={() => navigate('/home')}
-        className="flex items-center gap-2 text-sky-600 hover:text-sky-800 font-semibold transition-all group w-fit cursor-pointer"
-      >
-        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-        Back to Home
-      </button>
-      
-      <button
-        type="button"
-        onClick={() => navigate('/watchlist')}
-        className="flex items-center gap-2 px-4 py-2 bg-sky-600 text-white hover:bg-sky-700 font-semibold rounded-md transition-all w-fit cursor-pointer"
-      >
-        Watchlist
-        <Bookmark className="w-5 h-5" />
-      </button>
-    </div>
+        <button
+          type="button"
+          onClick={() => navigate('/home')}
+          className="flex items-center gap-2 font-semibold transition-all group w-fit cursor-pointer"
+          style={{ color: '#56B7DF' }}
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          Back to Home
+        </button>
+
+        <button
+          type="button"
+          onClick={() => navigate('/watchlist')}
+          className="flex items-center gap-2 px-4 py-2 font-semibold rounded-xl transition-all transform hover:scale-105 active:scale-95 w-fit cursor-pointer text-white"
+          style={{
+            background: 'linear-gradient(to right, #56B7DF, #38bdf8, #0ea5e9)',
+            boxShadow: '0 4px 15px rgba(86,183,223,0.35)'
+          }}
+        >
+          Watchlist
+          <Bookmark className="w-5 h-5" />
+        </button>
+      </div>
 
       {/* Header */}
       <div className="text-center mb-10">
-        <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-sky-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent mb-4">
+        <h1
+          className="text-4xl md:text-6xl font-bold mb-4"
+          style={{
+            background: 'linear-gradient(to right, #56B7DF, #38bdf8, #7dd3fc)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}
+        >
           Where to next?
         </h1>
         {prefilledDestination ? (
-          <p className="text-sky-700 text-lg font-medium">
-            Planning a trip to <span className="font-bold text-cyan-600">{prefilledDestination}</span> ✨ Fill in the rest to get started!
+          <p className="text-lg font-medium" style={{ color: 'rgba(86,183,223,0.85)' }}>
+            Planning a trip to <span className="font-bold" style={{ color: '#56B7DF' }}>{prefilledDestination}</span> ✨ Fill in the rest to get started!
           </p>
         ) : (
-          <p className="text-sky-700 text-lg font-medium">Plan your perfect getaway with TripGenie ✨</p>
+          <p className="text-lg font-medium" style={{ color: 'rgba(86,183,223,0.75)' }}>
+            Plan your perfect getaway with TripGenie ✨
+          </p>
         )}
       </div>
 
       {/* Main Search Bar */}
       <div className="w-full max-w-7xl mb-6">
-        <div className="bg-white/70 backdrop-blur-xl p-4 rounded-3xl shadow-2xl border border-white/60 hover:shadow-cyan-200/50 transition-shadow duration-300">
-
+        <div
+          className="p-4 rounded-3xl shadow-2xl"
+          style={{
+            background: 'rgba(255,255,255,0.05)',
+            backdropFilter: 'blur(24px)',
+            border: '1px solid rgba(86,183,223,0.15)',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)'
+          }}
+        >
           <div className="flex flex-row items-stretch gap-3">
 
             {/* Destination */}
             <div className="relative group flex-[1.8] min-w-35">
-              <div className={`backdrop-blur-sm transition-all rounded-2xl px-5 pt-7 pb-3 h-20 border shadow-sm hover:shadow-md ${
-                prefilledDestination
-                  ? 'bg-gradient-to-br from-cyan-100/80 to-sky-100/80 border-cyan-300/60'
-                  : 'bg-gradient-to-br from-sky-50/80 to-cyan-50/80 hover:from-sky-100/80 hover:to-cyan-100/80 border-sky-100/50'
-              }`}>
-                <label className="absolute top-2.5 left-5 text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1.5">
+              <div
+                className="backdrop-blur-sm transition-all rounded-2xl px-5 pt-7 pb-3 h-20 shadow-sm"
+                style={prefilledDestination ? fieldStylePrefilled : fieldStyle}
+              >
+                <label className="absolute top-2.5 left-5 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
+                  style={{ color: '#56B7DF' }}>
                   <MapPin className="w-3.5 h-3.5" />
                   Destination
                 </label>
@@ -217,7 +258,8 @@ export default function TripInputForm() {
                   value={formData.destination}
                   onChange={handleChange}
                   placeholder="Where are you going?"
-                  className="w-full bg-transparent border-none outline-none text-sky-900 placeholder-sky-400 font-semibold text-base pt-1"
+                  className="w-full bg-transparent border-none outline-none font-semibold text-base pt-1 placeholder:text-white/20"
+                  style={{ color: 'white' }}
                   disabled={isLoading}
                 />
               </div>
@@ -225,8 +267,9 @@ export default function TripInputForm() {
 
             {/* Start Date */}
             <div className="relative flex-1 min-w-35">
-              <div className="bg-gradient-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md">
-                <label className="absolute top-2.5 left-4 text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1">
+              <div className="backdrop-blur-sm transition-all rounded-2xl px-4 pt-7 pb-3 h-20 shadow-sm" style={fieldStyle}>
+                <label className="absolute top-2.5 left-4 text-xs font-bold uppercase tracking-wider flex items-center gap-1"
+                  style={{ color: '#56B7DF' }}>
                   <Calendar className="w-3.5 h-3.5" />
                   Check In
                 </label>
@@ -236,7 +279,8 @@ export default function TripInputForm() {
                   value={formData.startDate}
                   onChange={handleChange}
                   lang="en-GB"
-                  className="w-full bg-transparent border-none outline-none text-sky-900 font-semibold text-sm pt-1 cursor-pointer"
+                  className="w-full bg-transparent border-none outline-none font-semibold text-sm pt-1 cursor-pointer"
+                  style={{ color: 'white', colorScheme: 'dark' }}
                   disabled={isLoading}
                 />
               </div>
@@ -244,8 +288,9 @@ export default function TripInputForm() {
 
             {/* End Date */}
             <div className="relative flex-1 min-w-35">
-              <div className="bg-gradient-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md">
-                <label className="absolute top-2.5 left-4 text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1">
+              <div className="backdrop-blur-sm transition-all rounded-2xl px-4 pt-7 pb-3 h-20 shadow-sm" style={fieldStyle}>
+                <label className="absolute top-2.5 left-4 text-xs font-bold uppercase tracking-wider flex items-center gap-1"
+                  style={{ color: '#56B7DF' }}>
                   <Calendar className="w-3.5 h-3.5" />
                   Check Out
                 </label>
@@ -255,7 +300,8 @@ export default function TripInputForm() {
                   value={formData.endDate}
                   onChange={handleChange}
                   lang="en-GB"
-                  className="w-full bg-transparent border-none outline-none text-sky-900 font-semibold text-sm pt-1 cursor-pointer"
+                  className="w-full bg-transparent border-none outline-none font-semibold text-sm pt-1 cursor-pointer"
+                  style={{ color: 'white', colorScheme: 'dark' }}
                   disabled={isLoading}
                 />
               </div>
@@ -263,8 +309,9 @@ export default function TripInputForm() {
 
             {/* Guests */}
             <div className="relative flex-1 min-w-35">
-              <div className="bg-gradient-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md">
-                <label className="absolute top-2.5 left-4 text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1">
+              <div className="backdrop-blur-sm transition-all rounded-2xl px-4 pt-7 pb-3 h-20 shadow-sm" style={fieldStyle}>
+                <label className="absolute top-2.5 left-4 text-xs font-bold uppercase tracking-wider flex items-center gap-1"
+                  style={{ color: '#56B7DF' }}>
                   <Users className="w-3.5 h-3.5" />
                   Guests
                 </label>
@@ -275,30 +322,45 @@ export default function TripInputForm() {
                   max="20"
                   value={formData.guests}
                   onChange={handleChange}
-                  className="w-full bg-transparent border-none outline-none text-sky-900 font-semibold text-base pt-1 cursor-pointer"
+                  className="w-full bg-transparent border-none outline-none font-semibold text-base pt-1 cursor-pointer"
+                  style={{ color: 'white' }}
                   disabled={isLoading}
                 />
               </div>
             </div>
 
+            {/* Budget Dropdown */}
             <div className="relative flex-1 min-w-35">
-              <div 
+              <div
                 onClick={() => !isLoading && setActiveDropdown(activeDropdown === 'budget' ? null : 'budget')}
-                className="bg-gradient-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md cursor-pointer relative"
+                className="backdrop-blur-sm transition-all rounded-2xl px-4 pt-7 pb-3 h-20 shadow-sm cursor-pointer relative"
+                style={fieldStyle}
               >
-                <label className="absolute top-2.5 left-4 text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1 cursor-pointer">
+                <label className="absolute top-2.5 left-4 text-xs font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer"
+                  style={{ color: '#56B7DF' }}>
                   <DollarSign className="w-3.5 h-3.5" />
                   Budget
                 </label>
-                <div className="w-full text-sky-900 font-semibold text-sm pt-1 capitalize flex justify-between items-center">
+                <div className="w-full font-semibold text-sm pt-1 capitalize flex justify-between items-center"
+                  style={{ color: 'white' }}>
                   {formData.budget ? formData.budget.replace('-', ' ') : 'Select Budget'}
-                  <ChevronDown className={`w-4 h-4 transition-transform ${activeDropdown === 'budget' ? 'rotate-180' : ''}`} />
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform ${activeDropdown === 'budget' ? 'rotate-180' : ''}`}
+                    style={{ color: '#56B7DF' }}
+                  />
                 </div>
               </div>
 
-              {/* Budget Dropdown Popover */}
               {activeDropdown === 'budget' && (
-                <div className="absolute top-full left-0 w-full mt-2 p-2 bg-white/95 backdrop-blur-md border border-sky-100 shadow-xl rounded-2xl z-50">
+                <div
+                  className="absolute top-full left-0 w-full mt-2 p-2 rounded-2xl z-50"
+                  style={{
+                    background: 'rgba(13,32,48,0.97)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(86,183,223,0.2)',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.4)'
+                  }}
+                >
                   <div className="grid grid-cols-3 gap-2">
                     {[
                       { value: 'affordable', label: 'Budget', icon: '🪙' },
@@ -311,11 +373,12 @@ export default function TripInputForm() {
                           handleChange({ target: { name: 'budget', value: opt.value } });
                           setActiveDropdown(null);
                         }}
-                        className={`flex flex-col items-center justify-center gap-1 p-2 rounded-xl cursor-pointer transition-all border ${
-                          formData.budget === opt.value 
-                            ? 'bg-sky-50 border-sky-300 text-sky-700 shadow-inner' 
-                            : 'bg-transparent border-transparent hover:bg-sky-50/50 text-sky-600 hover:text-sky-800'
-                        }`}
+                        className="flex flex-col items-center justify-center gap-1 p-2 rounded-xl cursor-pointer transition-all"
+                        style={{
+                          background: formData.budget === opt.value ? 'rgba(86,183,223,0.2)' : 'transparent',
+                          border: formData.budget === opt.value ? '1px solid rgba(86,183,223,0.4)' : '1px solid transparent',
+                          color: formData.budget === opt.value ? '#56B7DF' : 'rgba(255,255,255,0.6)'
+                        }}
                       >
                         <span className="text-xl">{opt.icon}</span>
                         <span className="text-[9px] font-bold uppercase tracking-wider text-center">{opt.label}</span>
@@ -326,25 +389,38 @@ export default function TripInputForm() {
               )}
             </div>
 
-            {/* Trip Type / Vibe - Icon Grid */}
+            {/* Trip Type / Vibe Dropdown */}
             <div className="relative flex-[1.2] min-w-35">
-              <div 
+              <div
                 onClick={() => !isLoading && setActiveDropdown(activeDropdown === 'tripType' ? null : 'tripType')}
-                className="bg-gradient-to-br from-sky-50/80 to-cyan-50/80 backdrop-blur-sm hover:from-sky-100/80 hover:to-cyan-100/80 transition-all rounded-2xl px-4 pt-7 pb-3 h-20 border border-sky-100/50 shadow-sm hover:shadow-md cursor-pointer relative"
+                className="backdrop-blur-sm transition-all rounded-2xl px-4 pt-7 pb-3 h-20 shadow-sm cursor-pointer relative"
+                style={fieldStyle}
               >
-                <label className="absolute top-2.5 left-4 text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1 cursor-pointer">
+                <label className="absolute top-2.5 left-4 text-xs font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer"
+                  style={{ color: '#56B7DF' }}>
                   <Sparkles className="w-3.5 h-3.5" />
                   Vibe
                 </label>
-                <div className="w-full text-sky-900 font-semibold text-sm pt-1 capitalize flex justify-between items-center">
+                <div className="w-full font-semibold text-sm pt-1 capitalize flex justify-between items-center"
+                  style={{ color: 'white' }}>
                   {formData.tripType || 'Select Vibe'}
-                  <ChevronDown className={`w-4 h-4 transition-transform ${activeDropdown === 'tripType' ? 'rotate-180' : ''}`} />
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform ${activeDropdown === 'tripType' ? 'rotate-180' : ''}`}
+                    style={{ color: '#56B7DF' }}
+                  />
                 </div>
               </div>
 
-              {/* Trip Type Dropdown Popover */}
               {activeDropdown === 'tripType' && (
-                <div className="absolute top-full left-0 w-full mt-2 p-2 bg-white/95 backdrop-blur-md border border-sky-100 shadow-xl rounded-2xl z-50">
+                <div
+                  className="absolute top-full left-0 w-full mt-2 p-2 rounded-2xl z-50"
+                  style={{
+                    background: 'rgba(13,32,48,0.97)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(86,183,223,0.2)',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.4)'
+                  }}
+                >
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       { value: 'leisure', label: 'Leisure', icon: '🌴' },
@@ -360,11 +436,12 @@ export default function TripInputForm() {
                           handleChange({ target: { name: 'tripType', value: opt.value } });
                           setActiveDropdown(null);
                         }}
-                        className={`flex flex-col items-center justify-center gap-1 p-2 rounded-xl cursor-pointer transition-all border ${
-                          formData.tripType === opt.value 
-                            ? 'bg-sky-50 border-sky-300 text-sky-700 shadow-inner' 
-                            : 'bg-transparent border-transparent hover:bg-sky-50/50 text-sky-600 hover:text-sky-800'
-                        }`}
+                        className="flex flex-col items-center justify-center gap-1 p-2 rounded-xl cursor-pointer transition-all"
+                        style={{
+                          background: formData.tripType === opt.value ? 'rgba(86,183,223,0.2)' : 'transparent',
+                          border: formData.tripType === opt.value ? '1px solid rgba(86,183,223,0.4)' : '1px solid transparent',
+                          color: formData.tripType === opt.value ? '#56B7DF' : 'rgba(255,255,255,0.6)'
+                        }}
                       >
                         <span className="text-xl">{opt.icon}</span>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-center">{opt.label}</span>
@@ -375,23 +452,23 @@ export default function TripInputForm() {
               )}
             </div>
 
-
-
-
-
             {/* Search Button */}
             <button
               type="button"
               onClick={handleSubmit}
               disabled={isLoading || !formData.destination.trim() || !formData.startDate || !formData.endDate}
-              className="w-20 h-20 bg-gradient-to-br from-sky-500 via-cyan-500 to-blue-500 hover:from-sky-600 hover:via-cyan-600 hover:to-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl hover:shadow-cyan-400/50 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
+              className="w-20 h-20 text-white rounded-2xl flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
+              style={{
+                background: 'linear-gradient(135deg, #56B7DF, #38bdf8, #0ea5e9)',
+                boxShadow: '0 8px 25px rgba(86,183,223,0.4)'
+              }}
             >
               {isLoading ? <Loader2 className="w-7 h-7 animate-spin" /> : <Search className="w-7 h-7" />}
             </button>
 
           </div>
 
-          <p className="text-center text-xs text-sky-600/70 mt-4 font-medium">
+          <p className="text-center text-xs mt-4 font-medium" style={{ color: 'rgba(86,183,223,0.55)' }}>
             {isLoading ? '🤖 TripGenie is planning your trip...' : '✨ AI-powered itinerary will be generated instantly'}
           </p>
         </div>
@@ -400,8 +477,9 @@ export default function TripInputForm() {
       {/* Error Display */}
       {error && (
         <div className="w-full max-w-7xl mb-6">
-          <div className="bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-2xl p-4">
-            <p className="text-red-800 font-medium">{error}</p>
+          <div className="rounded-2xl p-4 border"
+            style={{ background: 'rgba(239,68,68,0.1)', borderColor: 'rgba(239,68,68,0.25)' }}>
+            <p className="text-red-400 font-medium">{error}</p>
           </div>
         </div>
       )}
@@ -409,14 +487,30 @@ export default function TripInputForm() {
       {/* Response Display */}
       {response && (
         <div className="w-full max-w-7xl pb-10">
-          <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 p-8">
-            <div classNam="border-b border-sky-200 pb-4 mb-6 flex justify-between items-start gap-4">
+          <div
+            className="rounded-3xl shadow-2xl p-8"
+            style={{
+              background: 'rgba(255,255,255,0.06)',
+              backdropFilter: 'blur(24px)',
+              border: '1px solid rgba(86,183,223,0.15)',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.3)'
+            }}
+          >
+            <div className="border-b pb-4 mb-6 flex justify-between items-start gap-4"
+              style={{ borderColor: 'rgba(86,183,223,0.15)' }}>
               <div>
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-sky-600 to-cyan-600 bg-clip-text text-transparent flex items-center gap-2 mb-2">
-                  <Globe className="w-8 h-8 text-cyan-600" />
+                <h2
+                  className="text-3xl font-bold flex items-center gap-2 mb-2"
+                  style={{
+                    background: 'linear-gradient(to right, #56B7DF, #38bdf8)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent'
+                  }}
+                >
+                  <Globe className="w-8 h-8 flex-shrink-0" style={{ color: '#56B7DF', WebkitTextFillColor: '#56B7DF' }} />
                   AI Travel Plan
                 </h2>
-                <div className="text-sm text-sky-700 space-y-1">
+                <div className="text-sm space-y-1" style={{ color: 'rgba(86,183,223,0.8)' }}>
                   <p>
                     <strong>From:</strong> {formatDate(response.startDate)}
                     <span className="mx-2">→</span>
@@ -427,10 +521,16 @@ export default function TripInputForm() {
               </div>
 
               <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                {/* New Search */}
                 <button
                   type="button"
                   onClick={handleNewPrompt}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all hover:scale-105 active:scale-95 shadow border border-sky-200 bg-white/60 text-sky-700 hover:bg-sky-50 cursor-pointer"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                  style={{
+                    background: 'rgba(86,183,223,0.1)',
+                    border: '1px solid rgba(86,183,223,0.25)',
+                    color: '#56B7DF'
+                  }}
                 >
                   <RotateCcw className="w-4 h-4" />
                   New Search
@@ -442,7 +542,11 @@ export default function TripInputForm() {
                       type="button"
                       onClick={handleAddToWatchlist}
                       disabled={isSavingToWatchlist}
-                      className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 active:scale-95 disabled:transform-none shadow-lg bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 active:scale-95 disabled:transform-none text-white disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      style={{
+                        background: 'linear-gradient(to right, #56B7DF, #38bdf8, #0ea5e9)',
+                        boxShadow: '0 6px 20px rgba(86,183,223,0.35)'
+                      }}
                     >
                       {isSavingToWatchlist ? (
                         <><Loader2 className="w-5 h-5 animate-spin" />Saving...</>
@@ -452,13 +556,23 @@ export default function TripInputForm() {
                     </button>
                   ) : (
                     <div className="flex flex-col items-end gap-2">
-                      <div className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold bg-green-500 text-white shadow-lg">
+                      <div
+                        className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white"
+                        style={{
+                          background: 'linear-gradient(to right, #22c55e, #16a34a)',
+                          boxShadow: '0 6px 20px rgba(34,197,94,0.3)'
+                        }}
+                      >
                         <BookmarkCheck className="w-5 h-5" />Saved!
                       </div>
                       <button
                         type="button"
                         onClick={() => navigate('/watchlist')}
-                        className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 active:scale-95 shadow-lg bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white cursor-pointer"
+                        className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 active:scale-95 text-white cursor-pointer"
+                        style={{
+                          background: 'linear-gradient(to right, #a855f7, #6366f1)',
+                          boxShadow: '0 6px 20px rgba(168,85,247,0.3)'
+                        }}
                       >
                         Go to Watchlist <ArrowRight className="w-5 h-5" />
                       </button>
@@ -469,13 +583,13 @@ export default function TripInputForm() {
             </div>
 
             <div className="prose prose-sky max-w-none">
-              <div className="whitespace-pre-wrap text-sky-900 leading-relaxed">
+              <div className="whitespace-pre-wrap leading-relaxed" style={{ color: 'rgba(255,255,255,0.85)' }}>
                 {response.answer}
               </div>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-sky-200">
-              <p className="text-sm text-sky-600 italic">
+            <div className="mt-6 pt-6 border-t" style={{ borderColor: 'rgba(86,183,223,0.15)' }}>
+              <p className="text-sm italic" style={{ color: 'rgba(86,183,223,0.5)' }}>
                 *This travel plan was generated by AI. Please verify all information, especially prices,
                 operating hours, and travel requirements before your trip.*
               </p>
@@ -483,10 +597,6 @@ export default function TripInputForm() {
           </div>
         </div>
       )}
-
-      {/* Decorative elements */}
-      <div className="fixed top-20 left-10 w-96 h-96 bg-cyan-300/20 rounded-full blur-3xl pointer-events-none -z-10"></div>
-      <div className="fixed bottom-20 right-10 w-96 h-96 bg-sky-300/20 rounded-full blur-3xl pointer-events-none -z-10"></div>
     </div>
   );
 }
