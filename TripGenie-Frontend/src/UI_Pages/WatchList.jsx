@@ -71,8 +71,8 @@ export default function WatchlistPage() {
     setShowingOldPlan(prev => ({ ...prev, [tripId]: !prev[tripId] }));
   };
 
-  const formatDate = (dateString) => new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric'
+  const formatDate = (dateString) => new Date(dateString).toLocaleDateString('en-IN', {
+      timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric', year: 'numeric'
   });
 
   const getDaysBetween = (start, end) => {
