@@ -5,3 +5,42 @@ Content-Type: application/json
 ###  Get Notifications for User
 GET http://localhost:5000/api/notifications/69993ce0ea52d2dc1999b14d
 Content-Type: application/json
+
+### Test flight search
+POST http://localhost:8000/flights
+Content-Type: application/json
+
+{
+  "query": "Find flights from Mumbai to Dubai for 2 people on 2025-08-15",
+  "trip_profile": {
+    "budget_tier": "moderate",
+    "trip_type": "romantic",
+    "guests": 2
+  }
+}
+
+### Test sync itinerary
+POST http://localhost:8000/sync-itinerary
+Content-Type: application/json
+
+{
+  "userId": "test123",
+  "tripId": "trip456",
+  "destination": "Dubai",
+  "startDate": "2025-08-15",
+  "endDate": "2025-08-20",
+  "guests": 2,
+  "budget": "moderate",
+  "tripType": "romantic",
+  "aiResponse": "Day 1: Arrive and check in...",
+  "flight": {
+    "airline_name": "Emirates",
+    "flight_number": "EK512",
+    "outbound": {
+      "departure": {"date": "15 Aug 2025", "time": "22:30"},
+      "arrival": {"date": "15 Aug 2025", "time": "23:45"},
+      "duration": "3h 15m",
+      "stops": 0
+    }
+  }
+}

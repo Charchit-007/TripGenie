@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   MapPin, Calendar, Users, DollarSign, Sparkles, Trash2, Loader2, 
   Globe2, ArrowLeft, Heart, Clock, AlertCircle, Compass,
-  RefreshCw, ChevronDown, ChevronUp, History
+  RefreshCw, ChevronDown, ChevronUp, History, Plane
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -301,7 +301,7 @@ export default function WatchlistPage() {
                     <button
                       onClick={() => handleDelete(trip._id)}
                       disabled={deletingId === trip._id}
-                      className="p-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+                      className="p-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6 cursor-pointer"
                       style={{
                         background: 'rgba(86,183,223,0.08)',
                         border: '1px solid rgba(86,183,223,0.2)',
@@ -393,7 +393,7 @@ export default function WatchlistPage() {
                           <div className="flex items-center gap-2 mb-3">
                             <button
                               onClick={() => setShowingOldPlan(prev => ({ ...prev, [trip._id]: false }))}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer"
                               style={!showingOldPlan[trip._id]
                                 ? { background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.35)', color: '#fbbf24' }
                                 : { background: 'rgba(86,183,223,0.08)', border: '1px solid rgba(86,183,223,0.2)', color: 'rgba(86,183,223,0.55)' }
@@ -405,7 +405,7 @@ export default function WatchlistPage() {
                             {trip.previousAIResponse && (
                               <button
                                 onClick={() => setShowingOldPlan(prev => ({ ...prev, [trip._id]: true }))}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer"
                                 style={showingOldPlan[trip._id]
                                   ? { background: 'rgba(86,183,223,0.18)', border: '1px solid rgba(86,183,223,0.4)', color: '#56B7DF' }
                                   : { background: 'rgba(86,183,223,0.08)', border: '1px solid rgba(86,183,223,0.2)', color: 'rgba(86,183,223,0.55)' }
@@ -424,7 +424,7 @@ export default function WatchlistPage() {
                             </span>
                             <button
                               onClick={() => setSelectedTrip(selectedTrip?._id === trip._id ? null : trip)}
-                              className="text-xs font-medium transition-colors"
+                              className="text-xs font-medium transition-colors cursor-pointer"
                               style={{ color: 'rgba(86,183,223,0.6)' }}
                               onMouseEnter={e => e.currentTarget.style.color = '#56B7DF'}
                               onMouseLeave={e => e.currentTarget.style.color = 'rgba(86,183,223,0.6)'}
@@ -436,7 +436,7 @@ export default function WatchlistPage() {
                       ) : (
                         <button
                           onClick={() => setSelectedTrip(selectedTrip?._id === trip._id ? null : trip)}
-                          className="w-full text-left"
+                          className="w-full text-left cursor-pointer"
                         >
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-semibold" style={{ color: '#56B7DF' }}>
@@ -487,6 +487,50 @@ export default function WatchlistPage() {
                       )}
                     </div>
                   )}
+
+                  {/* ─── NEW FLIGHT BOOKING ACTION BAR ─── */}
+                  <div className="mt-6 pt-4 flex items-center justify-between" style={{ borderTop: '1px solid rgba(86,183,223,0.12)' }}>
+                    {trip.hasBookedFlight ? (
+                      <>
+                        <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: '#10b981' }}>
+                          <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse"></span>
+                          Flight Booked
+                        </div>
+                        <button
+                          onClick={() => navigate('/bookings')}
+                          className="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer"
+                          style={{
+                            background: 'rgba(16,185,129,0.1)',
+                            border: '1px solid rgba(16,185,129,0.3)',
+                            color: '#10b981'
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(16,185,129,0.2)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'rgba(16,185,129,0.1)'}
+                        >
+                          View Tickets
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-xs font-medium" style={{ color: 'rgba(86,183,223,0.6)' }}>
+                          Ready to travel?
+                        </div>
+                        <button
+                          onClick={() => navigate('/flights', { state: { trip } })}
+                          className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-xl transition-all transform hover:scale-105 cursor-pointer"
+                          style={{
+                            background: 'linear-gradient(to right, #56B7DF, #38bdf8, #0ea5e9)',
+                            color: '#0B1D26',
+                            boxShadow: '0 4px 15px rgba(86,183,223,0.3)'
+                          }}
+                        >
+                          <Plane className="w-4 h-4" />
+                          Book Flights
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  
                 </div>
               </div>
             ))}

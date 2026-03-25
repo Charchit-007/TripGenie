@@ -64,4 +64,39 @@ router.delete('/:tripId', async (req, res) => {
   }
 });
 
+router.patch('/:tripId/flight', async (req, res) => {
+  try {
+    const { tripId } = req.params;
+    const { flightDetails, newAiResponse } = req.body;
+
+    if (!flightDetails || !newAiResponse) {
+      return res.status(400).json({ error: 'Flight details and the synced itinerary are required' });
+    }
+
+    // Find the trip first so we can move the current aiResponse to previousAIResponse
+    const existingTrip = await Trip.findById(tripId);
+    
+    if (!existingTrip) {
+      return res.status(404).json({ error: 'Trip not found' });
+    }
+
+    // Update the trip
+    existingTrip.previousAIResponse = existingTrip.aiResponse; // Backup the old plan
+    existingTrip.aiResponse = newAiResponse;                   // Save the new synced plan
+    existingTrip.flightDetails = flightDetails;                // Save the flight
+    existingTrip.isReplanned = true;                           // Mark it as modified
+
+    await existingTrip.save();
+
+    res.status(200).json({ 
+      message: 'Flight added and itinerary synced successfully', 
+      trip: existingTrip 
+    });
+
+  } catch (error) {
+    console.error('Error updating trip with flight:', error);
+    res.status(500).json({ error: 'Failed to update trip with flight data' });
+  }
+});
+
 module.exports = router;

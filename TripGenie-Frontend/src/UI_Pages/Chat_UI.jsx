@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Calendar, Users, DollarSign, Sparkles, Loader2, Globe, Bookmark, BookmarkCheck, ArrowLeft, ArrowRight, RotateCcw,ChevronDown,Check, Palmtree } from 'lucide-react';
+import { Search, MapPin, Calendar, Users, DollarSign, Sparkles, Loader2, Globe, Bookmark, BookmarkCheck, ArrowLeft, ArrowRight, RotateCcw,ChevronDown,Check, Palmtree, Plane } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const AI_BASE_URL = "http://localhost:8000";
@@ -165,6 +165,11 @@ export default function TripInputForm() {
   const fieldStylePrefilled = {
     background: 'rgba(86,183,223,0.18)',
     border: '1px solid rgba(86,183,223,0.45)',
+  };
+
+  const handleBookFlights = () => {
+    if (!currentTripData) return;
+    navigate('/flights', { state: { trip: currentTripData } });
   };
 
   return (
@@ -579,6 +584,19 @@ export default function TripInputForm() {
                     </div>
                   )
                 )}
+                {/* NEW: Book Flights Button */}
+                <button
+                  type="button"
+                  onClick={handleBookFlights}
+                  className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all transform hover:scale-105 active:scale-95 text-[#0B1D26] cursor-pointer mt-2"
+                  style={{
+                    background: 'linear-gradient(to right, #56B7DF, #38bdf8)',
+                    boxShadow: '0 4px 15px rgba(86,183,223,0.3)'
+                  }}
+                >
+                  <Plane className="w-5 h-5" />
+                  Book Flights
+                </button>
               </div>
             </div>
 

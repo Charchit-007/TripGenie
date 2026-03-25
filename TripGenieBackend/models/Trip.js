@@ -21,17 +21,22 @@ const tripSchema = new mongoose.Schema({
   },
   budget: {
     type: String,
-    enum: ['affordable', 'mid-range', 'luxury'],  // ← kept your values
+    enum: ['affordable', 'mid-range', 'luxury'], 
     required: true,
   },
   tripType: {
     type: String,
-    enum: ['leisure', 'adventure', 'cultural', 'family', 'romantic', 'business'], // ← kept your values
+    enum: ['leisure', 'adventure', 'cultural', 'family', 'romantic', 'business'], 
     required: true,
   },
   aiResponse:         { type: String },
   previousAIResponse: { type: String },
   isReplanned:        { type: Boolean, default: false },
+  
+  // NEW FIELD: Store the selected flight
+  flightDetails:      { type: Object, default: null },
+  hasBookedFlight: { type: Boolean, default: false },
+  
 }, { timestamps: true });
 
 // Fast lookup: all trips for a user, newest first

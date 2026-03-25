@@ -77,4 +77,35 @@ router.post('/test/trigger', async (req, res) => {
   }
 });
 
+//for flight bookings
+// Test trigger for Flight Monitoring Agent
+router.post('/test/flight-alert', async (req, res) => {
+  try {
+    const { userId, tripId, destination, type } = req.body; 
+    // type could be 'PRICE_DROP' or 'DISRUPTION'
+
+    const messages = {
+      PRICE_DROP: `📉 Great news! The price for your flight to ${destination} just dropped by $50. Check the booking page for upgrade options!`,
+      DISRUPTION: `⚠️ Schedule Change: Your flight to ${destination} has a 2-hour delay. TripGenie is currently checking if your airport transfer needs to be rescheduled.`
+    };
+
+    const notification = await Notification.create({
+      userId,
+      tripId,
+      destination,
+      message: messages[type] || messages.PRICE_DROP,
+      severity: 'warning',
+      type: 'flight', // Your enum should support this
+      isRead: false
+    });
+
+    // Optionally send the email immediately for testing
+    // await sendFlightAlertEmail(userEmail, notification);
+
+    res.status(200).json({ message: 'Flight notification triggered', notification });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
