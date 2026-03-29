@@ -33,7 +33,7 @@ export default function AuthPage() {
       localStorage.setItem('userName', name);
       localStorage.setItem('userEmail', email);
       setLoginSuccess(response.data.msg || 'Login successful!');
-      setTimeout(() => navigate('/home'), 1500);
+      setTimeout(() => navigate('/splash', { replace: true }), 1500);
     } catch (err) {
       setLoginError(err.response?.data?.msg || 'An unexpected error occurred.');
     }
@@ -55,7 +55,7 @@ export default function AuthPage() {
       localStorage.setItem('userName', name);
       localStorage.setItem('userEmail', email);
       setRegisterSuccess(response.data.msg || 'Registration successful!');
-      setTimeout(() => navigate('/home'), 1500);
+      setTimeout(() => navigate('/splash', { replace: true }), 1500);
     } catch (err) {
       setRegisterError(err.response?.data?.msg || 'An unexpected error occurred.');
     }

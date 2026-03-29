@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   User, Mountain, ChevronDown, 
-  Zap, Shield, Bell, CheckCheck, X
+  Zap, Shield, Bell, CheckCheck, X,
+  Bookmark, Ticket, Settings, LogOut, ChevronRight
 } from 'lucide-react';
 import { useNotifications } from '../hooks/useNotifications.js';
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -49,7 +50,6 @@ const TrekkingCard = ({ item, index, currentIndex, total, onClickCenter, onIniti
       <div className="absolute bottom-10 left-8 right-8 text-left">
         <h3 className="text-white text-xl font-bold tracking-tight">{item.title}</h3>
         <p className="text-white/50 text-[10px] mt-1 font-bold uppercase tracking-widest">{item.location}</p>
-        {/* ✅ Replaced duration with bestTime + vibe */}
         <div className="flex items-center gap-2 mt-4 flex-wrap">
           <span className="flex items-center gap-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1 text-[10px] font-black text-white uppercase tracking-wider">
             🌤️ {item.bestTime}
@@ -65,8 +65,8 @@ const TrekkingCard = ({ item, index, currentIndex, total, onClickCenter, onIniti
 
 const severityConfig = {
   critical: { dot: 'bg-red-500', border: 'border-l-2 border-red-500', bg: 'bg-red-500/10', label: '🔴' },
-  warning: { dot: 'bg-yellow-400', border: 'border-l-2 border-yellow-400', bg: 'bg-yellow-400/10', label: '🟡' },
-  info: { dot: 'bg-[#56B7DF]', border: 'border-l-2 border-[#56B7DF]', bg: 'bg-[#56B7DF]/10', label: '🔵' },
+  warning:  { dot: 'bg-yellow-400', border: 'border-l-2 border-yellow-400', bg: 'bg-yellow-400/10', label: '🟡' },
+  info:     { dot: 'bg-[#56B7DF]', border: 'border-l-2 border-[#56B7DF]', bg: 'bg-[#56B7DF]/10', label: '🔵' },
 };
 
 const formatTime = (date) => new Date(date).toLocaleDateString('en-US', {
@@ -81,38 +81,192 @@ const getSeason = () => {
   return 'autumn';
 };
 
-// ✅ Added bestTime and vibe (with vibeIcon) to every destination
 const seasonDestinations = {
   winter: [
-    { title: "Maldives", location: "Indian Ocean", bestTime: "Nov – Apr", vibe: "Beach", vibeIcon: "🏖️", image: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8", prompt: "Plan a romantic beach trip to the Maldives." },
-    { title: "Rajasthan", location: "India", bestTime: "Oct – Mar", vibe: "Cultural", vibeIcon: "🕌", image: "https://images.unsplash.com/photo-1477587458883-47145ed94245", prompt: "Plan a cultural trip to Rajasthan, India." },
-    { title: "Dubai", location: "UAE", bestTime: "Nov – Mar", vibe: "Luxury", vibeIcon: "✨", image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c", prompt: "Plan a luxury trip to Dubai, UAE." },
-    { title: "Bangkok", location: "Thailand", bestTime: "Nov – Feb", vibe: "Leisure", vibeIcon: "🌴", image: "https://images.unsplash.com/photo-1508009603885-50cf7c579365", prompt: "Plan a leisure trip to Bangkok, Thailand." },
-    { title: "Queenstown", location: "New Zealand", bestTime: "Dec – Feb", vibe: "Adventure", vibeIcon: "🏔️", image: "https://images.unsplash.com/photo-1507699622108-4be3abd695ad", prompt: "Plan an adventure trip to Queenstown, New Zealand." },
+    { title: "Maldives",    location: "Indian Ocean",  bestTime: "Nov – Apr", vibe: "Beach",     vibeIcon: "🏖️", image: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8", prompt: "Plan a romantic beach trip to the Maldives." },
+    { title: "Rajasthan",   location: "India",         bestTime: "Oct – Mar", vibe: "Cultural",  vibeIcon: "🕌", image: "https://images.unsplash.com/photo-1477587458883-47145ed94245", prompt: "Plan a cultural trip to Rajasthan, India." },
+    { title: "Dubai",       location: "UAE",           bestTime: "Nov – Mar", vibe: "Luxury",    vibeIcon: "✨", image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c", prompt: "Plan a luxury trip to Dubai, UAE." },
+    { title: "Bangkok",     location: "Thailand",      bestTime: "Nov – Feb", vibe: "Leisure",   vibeIcon: "🌴", image: "https://images.unsplash.com/photo-1508009603885-50cf7c579365", prompt: "Plan a leisure trip to Bangkok, Thailand." },
+    { title: "Queenstown",  location: "New Zealand",   bestTime: "Dec – Feb", vibe: "Adventure", vibeIcon: "🏔️", image: "https://images.unsplash.com/photo-1507699622108-4be3abd695ad", prompt: "Plan an adventure trip to Queenstown, New Zealand." },
   ],
   spring: [
-    { title: "Kyoto", location: "Japan", bestTime: "Mar – May", vibe: "Cultural", vibeIcon: "🌸", image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e", prompt: "Plan a cultural trip to Kyoto, Japan during cherry blossom season." },
-    { title: "Santorini", location: "Greece", bestTime: "Apr – Jun", vibe: "Romantic", vibeIcon: "💙", image: "https://images.unsplash.com/photo-1469796466635-455ede028aca", prompt: "Plan a romantic trip to Santorini, Greece." },
-    { title: "Amsterdam", location: "Netherlands", bestTime: "Mar – May", vibe: "Leisure", vibeIcon: "🌷", image: "https://images.unsplash.com/photo-1512470876302-972faa2aa9a4", prompt: "Plan a trip to Amsterdam, Netherlands during tulip season." },
-    { title: "Tuscany", location: "Italy", bestTime: "Apr – Jun", vibe: "Leisure", vibeIcon: "🍷", image: "https://images.unsplash.com/photo-1533104816931-20fa691ff6ca", prompt: "Plan a leisure trip through Tuscany, Italy." },
-    { title: "Barcelona", location: "Spain", bestTime: "May – Jun", vibe: "Cultural", vibeIcon: "🎨", image: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4", prompt: "Plan a cultural trip to Barcelona, Spain." },
+    { title: "Kyoto",       location: "Japan",         bestTime: "Mar – May", vibe: "Cultural",  vibeIcon: "🌸", image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e", prompt: "Plan a cultural trip to Kyoto, Japan during cherry blossom season." },
+    { title: "Santorini",   location: "Greece",        bestTime: "Apr – Jun", vibe: "Romantic",  vibeIcon: "💙", image: "https://images.unsplash.com/photo-1469796466635-455ede028aca", prompt: "Plan a romantic trip to Santorini, Greece." },
+    { title: "Amsterdam",   location: "Netherlands",   bestTime: "Mar – May", vibe: "Leisure",   vibeIcon: "🌷", image: "https://images.unsplash.com/photo-1512470876302-972faa2aa9a4", prompt: "Plan a trip to Amsterdam, Netherlands during tulip season." },
+    { title: "Tuscany",     location: "Italy",         bestTime: "Apr – Jun", vibe: "Leisure",   vibeIcon: "🍷", image: "https://images.unsplash.com/photo-1533104816931-20fa691ff6ca", prompt: "Plan a leisure trip through Tuscany, Italy." },
+    { title: "Barcelona",   location: "Spain",         bestTime: "May – Jun", vibe: "Cultural",  vibeIcon: "🎨", image: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4", prompt: "Plan a cultural trip to Barcelona, Spain." },
   ],
   summer: [
-    { title: "Bali", location: "Indonesia", bestTime: "May – Sep", vibe: "Beach", vibeIcon: "🏖️", image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4", prompt: "Plan a leisure trip to Bali, Indonesia." },
-    { title: "Amalfi Coast", location: "Italy", bestTime: "Jun – Aug", vibe: "Scenic", vibeIcon: "🌊", image: "https://images.unsplash.com/photo-1533587851505-d119e13fa0d7", prompt: "Plan a scenic trip along the Amalfi Coast, Italy." },
-    { title: "Dubrovnik", location: "Croatia", bestTime: "Jun – Sep", vibe: "Leisure", vibeIcon: "⛵", image: "https://images.unsplash.com/photo-1555990538-c62f8f9c7d9a", prompt: "Plan a trip to Dubrovnik, Croatia." },
-    { title: "Swiss Alps", location: "Switzerland", bestTime: "Jun – Sep", vibe: "Adventure", vibeIcon: "🏔️", image: "https://images.unsplash.com/photo-1531310197839-ccf54634509e", prompt: "Plan a summer trip to the Swiss Alps, Switzerland." },
-    { title: "Iceland", location: "Europe", bestTime: "Jun – Aug", vibe: "Adventure", vibeIcon: "🌋", image: "https://images.unsplash.com/photo-1476610182048-b716b8518aae", prompt: "Plan a road trip across Iceland in summer." },
+    { title: "Bali",         location: "Indonesia",    bestTime: "May – Sep", vibe: "Beach",     vibeIcon: "🏖️", image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4", prompt: "Plan a leisure trip to Bali, Indonesia." },
+    { title: "Amalfi Coast", location: "Italy",        bestTime: "Jun – Aug", vibe: "Scenic",    vibeIcon: "🌊", image: "https://images.unsplash.com/photo-1533587851505-d119e13fa0d7", prompt: "Plan a scenic trip along the Amalfi Coast, Italy." },
+    { title: "Dubrovnik",    location: "Croatia",      bestTime: "Jun – Sep", vibe: "Leisure",   vibeIcon: "⛵", image: "https://images.unsplash.com/photo-1555990538-c62f8f9c7d9a", prompt: "Plan a trip to Dubrovnik, Croatia." },
+    { title: "Swiss Alps",   location: "Switzerland",  bestTime: "Jun – Sep", vibe: "Adventure", vibeIcon: "🏔️", image: "https://images.unsplash.com/photo-1531310197839-ccf54634509e", prompt: "Plan a summer trip to the Swiss Alps, Switzerland." },
+    { title: "Iceland",      location: "Europe",       bestTime: "Jun – Aug", vibe: "Adventure", vibeIcon: "🌋", image: "https://images.unsplash.com/photo-1476610182048-b716b8518aae", prompt: "Plan a road trip across Iceland in summer." },
   ],
   autumn: [
-    { title: "Kyoto", location: "Japan", bestTime: "Oct – Nov", vibe: "Cultural", vibeIcon: "🍁", image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e", prompt: "Plan a trip to Kyoto, Japan during autumn foliage season." },
-    { title: "New England", location: "USA", bestTime: "Sep – Nov", vibe: "Scenic", vibeIcon: "🍂", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d", prompt: "Plan a road trip through New England, USA during fall foliage." },
-    { title: "Prague", location: "Czech Republic", bestTime: "Sep – Nov", vibe: "Cultural", vibeIcon: "🏰", image: "https://images.unsplash.com/photo-1541849546-216549ae216d", prompt: "Plan a cultural trip to Prague, Czech Republic." },
-    { title: "Inca Trail", location: "Peru", bestTime: "Apr – Oct", vibe: "Adventure", vibeIcon: "🥾", image: "https://images.unsplash.com/photo-1526392060635-9d6019884377", prompt: "Plan a guided trek along the Inca Trail, Peru." },
-    { title: "Istanbul", location: "Turkey", bestTime: "Sep – Nov", vibe: "Cultural", vibeIcon: "🕌", image: "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200", prompt: "Plan a cultural trip to Istanbul, Turkey." },
+    { title: "Kyoto",       location: "Japan",         bestTime: "Oct – Nov", vibe: "Cultural",  vibeIcon: "🍁", image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e", prompt: "Plan a trip to Kyoto, Japan during autumn foliage season." },
+    { title: "New England", location: "USA",           bestTime: "Sep – Nov", vibe: "Scenic",    vibeIcon: "🍂", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d", prompt: "Plan a road trip through New England, USA during fall foliage." },
+    { title: "Prague",      location: "Czech Republic",bestTime: "Sep – Nov", vibe: "Cultural",  vibeIcon: "🏰", image: "https://images.unsplash.com/photo-1541849546-216549ae216d", prompt: "Plan a cultural trip to Prague, Czech Republic." },
+    { title: "Inca Trail",  location: "Peru",          bestTime: "Apr – Oct", vibe: "Adventure", vibeIcon: "🥾", image: "https://images.unsplash.com/photo-1526392060635-9d6019884377", prompt: "Plan a guided trek along the Inca Trail, Peru." },
+    { title: "Istanbul",    location: "Turkey",        bestTime: "Sep – Nov", vibe: "Cultural",  vibeIcon: "🕌", image: "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200", prompt: "Plan a cultural trip to Istanbul, Turkey." },
   ],
 };
 
+// ══════════════════════════════════════════════════════════════
+// USER DROPDOWN COMPONENT
+// ══════════════════════════════════════════════════════════════
+function UserDropdown({ onLogout }) {
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  const userName  = localStorage.getItem('userName')  || 'Traveller';
+  const userEmail = localStorage.getItem('userEmail') || '';
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const menuItems = [
+    {
+      icon: <Bookmark size={15} />,
+      label: 'My Watchlist',
+      sub: 'Saved trip plans',
+      action: () => { navigate('/watchlist'); setOpen(false); },
+    },
+    {
+      icon: <Ticket size={15} />,
+      label: 'Booked Tickets',
+      sub: 'View flight bookings',
+      action: () => { navigate('/bookings'); setOpen(false); },
+    },
+    {
+      icon: <Settings size={15} />,
+      label: 'Settings',
+      sub: 'Preferences & account',
+      action: () => { navigate('/settings'); setOpen(false); },
+    },
+  ];
+
+  return (
+    <div className="relative" ref={ref}>
+
+      {/* ── Trigger button ── */}
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2.5 bg-white/10 backdrop-blur-md border border-white/20 pl-3 pr-4 py-2.5 rounded-full transition-all hover:bg-white/15 hover:border-[#56B7DF]/40 active:scale-95 cursor-pointer group"
+      >
+        {/* User icon circle */}
+        <div className="w-7 h-7 rounded-full bg-[#56B7DF]/20 border border-[#56B7DF]/40 flex items-center justify-center flex-shrink-0">
+          <User size={14} className="text-[#56B7DF]" />
+        </div>
+        {/* Name */}
+        <span className="text-white text-[11px] font-black uppercase tracking-widest max-w-[90px] truncate">
+          {userName}
+        </span>
+        {/* Chevron */}
+        <ChevronDown
+          size={13}
+          className={`text-white/50 transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+
+      {/* ── Dropdown card ── */}
+      <div className={`
+        absolute right-0 mt-3 w-72
+        bg-[#0B1D26]/95 backdrop-blur-2xl
+        border border-white/10 rounded-2xl
+        shadow-[0_20px_60px_rgba(0,0,0,0.6)]
+        overflow-hidden
+        transition-all duration-300 origin-top-right
+        ${open
+          ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto'
+          : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
+        }
+      `}>
+
+        {/* Profile header */}
+        <div className="px-5 py-4 border-b border-white/8"
+          style={{ background: 'linear-gradient(135deg, rgba(86,183,223,0.08), transparent)' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#56B7DF]/15 border border-[#56B7DF]/30 flex items-center justify-center flex-shrink-0">
+              <User size={18} className="text-[#56B7DF]" />
+            </div>
+            <div className="overflow-hidden">
+              <p className="text-white text-sm font-bold truncate">{userName}</p>
+              <p className="text-white/40 text-[10px] font-medium truncate">{userEmail}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Menu items */}
+        <div className="py-2">
+          {menuItems.map((item, i) => (
+            <button
+              key={i}
+              onClick={item.action}
+              className="w-full flex items-center gap-3.5 px-5 py-3 text-left
+                hover:bg-white/5 transition-all group cursor-pointer"
+            >
+              {/* Icon box */}
+              <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/8
+                flex items-center justify-center flex-shrink-0
+                group-hover:bg-[#56B7DF]/15 group-hover:border-[#56B7DF]/30
+                transition-all">
+                <span className="text-white/50 group-hover:text-[#56B7DF] transition-colors">
+                  {item.icon}
+                </span>
+              </div>
+              {/* Text */}
+              <div className="flex-1 min-w-0">
+                <p className="text-white/85 text-[12px] font-semibold group-hover:text-white transition-colors">
+                  {item.label}
+                </p>
+                <p className="text-white/35 text-[10px] font-medium">
+                  {item.sub}
+                </p>
+              </div>
+              {/* Arrow */}
+              <ChevronRight size={13}
+                className="text-white/20 group-hover:text-[#56B7DF]/60 transition-colors flex-shrink-0" />
+            </button>
+          ))}
+        </div>
+
+        {/* Divider */}
+        <div className="mx-4 border-t border-white/8" />
+
+        {/* Logout */}
+        <div className="py-2">
+          <button
+            onClick={() => { onLogout(); setOpen(false); }}
+            className="w-full flex items-center gap-3.5 px-5 py-3 text-left
+              hover:bg-red-500/8 transition-all group cursor-pointer"
+          >
+            <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/8
+              flex items-center justify-center flex-shrink-0
+              group-hover:bg-red-500/15 group-hover:border-red-500/30 transition-all">
+              <LogOut size={15} className="text-white/50 group-hover:text-red-400 transition-colors" />
+            </div>
+            <div className="flex-1">
+              <p className="text-white/85 text-[12px] font-semibold group-hover:text-red-400 transition-colors">
+                Logout
+              </p>
+              <p className="text-white/35 text-[10px] font-medium">Sign out of TripGenie</p>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// MAIN PAGE
+// ══════════════════════════════════════════════════════════════
 export default function LandingPage() {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -122,15 +276,15 @@ export default function LandingPage() {
     { type: 'alert', text: 'Tokyo: Peak season alert' }
   ]);
 
-  const currentSeason = getSeason();
-  const destinations = seasonDestinations[currentSeason];
+  const currentSeason  = getSeason();
+  const destinations   = seasonDestinations[currentSeason];
 
   useEffect(() => {
     const fetchWeatherAlerts = async () => {
       const popularCities = [
-        { name: 'Paris', lat: 48.8566, lon: 2.3522 },
-        { name: 'Dubai', lat: 25.2048, lon: 55.2708 },
-        { name: 'New York', lat: 40.7128, lon: -74.0060 }
+        { name: 'Paris',    lat: 48.8566, lon: 2.3522  },
+        { name: 'Dubai',    lat: 25.2048, lon: 55.2708 },
+        { name: 'New York', lat: 40.7128, lon: -74.006 }
       ];
       const weatherAlerts = [];
       for (const city of popularCities) {
@@ -154,9 +308,8 @@ export default function LandingPage() {
 
   const handleCardClick = (item) => {
     const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-    } else {
+    if (!token) navigate('/login');
+    else {
       sessionStorage.removeItem('tripGenieState');
       navigate('/chat', { state: { destination: item.title } });
     }
@@ -165,8 +318,8 @@ export default function LandingPage() {
   const [tripWidth, setTripWidth] = useState(500);
   useEffect(() => {
     const updateWidth = () => {
-      const tripElement = document.getElementById("trip-text");
-      if (tripElement) setTripWidth(tripElement.offsetWidth);
+      const el = document.getElementById("trip-text");
+      if (el) setTripWidth(el.offsetWidth);
     };
     updateWidth();
     window.addEventListener("resize", updateWidth);
@@ -209,10 +362,10 @@ export default function LandingPage() {
 
   const touchStartX = useRef(null);
   const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
-  const handleTouchEnd = (e) => {
+  const handleTouchEnd   = (e) => {
     if (!touchStartX.current) return;
     const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (diff > 50) setCurrentIndex((prev) => (prev + 1) % destinations.length);
+    if (diff > 50)       setCurrentIndex((prev) => (prev + 1) % destinations.length);
     else if (diff < -50) setCurrentIndex((prev) => prev === 0 ? destinations.length - 1 : prev - 1);
     touchStartX.current = null;
   };
@@ -256,26 +409,34 @@ export default function LandingPage() {
 
         {/* TOP BAR */}
         <div className="relative z-50 w-full max-w-7xl mx-auto px-10 pt-10 flex justify-between items-center">
+          {/* Logo */}
           <div className="flex items-center gap-3">
             <Mountain className="text-white w-8 h-8" />
             <span className="text-white font-black tracking-[0.4em] text-xs uppercase">Trip Genie</span>
           </div>
-          <div className="flex items-center gap-5">
+
+          {/* Right side — auth controls */}
+          <div className="flex items-center gap-4">
             {!isAuthenticated ? (
-              <button onClick={() => navigate('/login')} className="flex items-center gap-3 bg-[#56B7DF] px-8 py-4 rounded-[2rem] font-black text-[10px] uppercase tracking-widest shadow-[0_4px_20px_rgba(86,183,223,0.15)] hover:bg-[#68c6eb] transition-all active:scale-95 text-[#0B1D26]">
+              <button onClick={() => navigate('/login')}
+                className="flex items-center gap-3 bg-[#56B7DF] px-8 py-4 rounded-[2rem] font-black text-[10px] uppercase tracking-widest shadow-[0_4px_20px_rgba(86,183,223,0.15)] hover:bg-[#68c6eb] transition-all active:scale-95 text-[#0B1D26]">
                 <User size={16} /> Sign In
               </button>
             ) : (
               <>
+                {/* Notification bell */}
                 <div className="relative" ref={notificationRef}>
-                  <div onClick={() => setShowNotifications(!showNotifications)} className="relative cursor-pointer">
+                  <div onClick={() => setShowNotifications(!showNotifications)}
+                    className="relative cursor-pointer p-2 rounded-full hover:bg-white/10 transition-all">
                     <Bell size={22} className="text-white hover:text-[#56B7DF] transition-all" />
                     {unreadCount > 0 && (
-                      <span className="absolute -top-2 -right-2 w-4 h-4 bg-[#56B7DF] text-[9px] flex items-center justify-center rounded-full text-[#0B1D26] font-bold">
+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#56B7DF] text-[9px] flex items-center justify-center rounded-full text-[#0B1D26] font-bold">
                         {unreadCount > 9 ? '9+' : unreadCount}
                       </span>
                     )}
                   </div>
+
+                  {/* Notification dropdown */}
                   {showNotifications && (
                     <div className="absolute right-0 mt-4 w-96 bg-[#0B1D26] border border-white/10 rounded-2xl shadow-xl backdrop-blur-xl overflow-hidden">
                       <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
@@ -299,8 +460,7 @@ export default function LandingPage() {
                             const config = severityConfig[n.severity] || severityConfig.info;
                             return (
                               <div key={n._id} onClick={() => handleNotificationClick(n)}
-                                className={`flex items-start gap-3 px-4 py-3 border-b border-white/5 cursor-pointer hover:bg-white/5 transition-all ${config.border} ${config.bg} ${!n.isRead ? 'opacity-100' : 'opacity-50'}`}
-                              >
+                                className={`flex items-start gap-3 px-4 py-3 border-b border-white/5 cursor-pointer hover:bg-white/5 transition-all ${config.border} ${config.bg} ${!n.isRead ? 'opacity-100' : 'opacity-50'}`}>
                                 <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${config.dot}`} />
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center justify-between mb-1">
@@ -312,7 +472,8 @@ export default function LandingPage() {
                                   <p className="text-white/60 text-[11px] leading-relaxed line-clamp-2">{n.message}</p>
                                   <p className="text-white/25 text-[10px] mt-1.5 font-bold uppercase tracking-widest">{formatTime(n.createdAt)}</p>
                                 </div>
-                                <button onClick={(e) => { e.stopPropagation(); deleteNotification(n._id); }} className="text-white/20 hover:text-red-400 transition-all flex-shrink-0 mt-0.5">
+                                <button onClick={(e) => { e.stopPropagation(); deleteNotification(n._id); }}
+                                  className="text-white/20 hover:text-red-400 transition-all flex-shrink-0 mt-0.5">
                                   <X size={12} />
                                 </button>
                               </div>
@@ -322,7 +483,8 @@ export default function LandingPage() {
                       </div>
                       {notifications.length > 0 && (
                         <div className="px-4 py-3 border-t border-white/10">
-                          <button onClick={() => { navigate('/watchlist'); setShowNotifications(false); }} className="w-full text-center text-[10px] font-black uppercase tracking-widest text-[#56B7DF] hover:text-white transition-all">
+                          <button onClick={() => { navigate('/watchlist'); setShowNotifications(false); }}
+                            className="w-full text-center text-[10px] font-black uppercase tracking-widest text-[#56B7DF] hover:text-white transition-all">
                             View Watchlist →
                           </button>
                         </div>
@@ -330,9 +492,9 @@ export default function LandingPage() {
                     </div>
                   )}
                 </div>
-                <button onClick={handleLogout} className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-3 rounded-[2rem] text-white text-[10px] uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95 cursor-pointer">
-                  Logout
-                </button>
+
+                {/* ── User dropdown ── */}
+                <UserDropdown onLogout={handleLogout} />
               </>
             )}
           </div>
@@ -395,9 +557,9 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
-              { tier: "Backpacker", price: "800", score: "98%", features: ["Hostels", "Local Transport", "Street Food"] },
-              { tier: "Explorer", price: "2,400", score: "94%", features: ["Boutique Hotels", "Private Transfers", "Guided Tours"] },
-              { tier: "Elite", price: "5,000+", score: "89%", features: ["Luxury Resorts", "Helicopters", "Personal Concierge"] }
+              { tier: "Backpacker", price: "800",   score: "98%", budgetValue: "affordable", features: ["Hostels", "Local Transport", "Street Food"] },
+              { tier: "Explorer",   price: "2,400", score: "94%", budgetValue: "mid-range",  features: ["Boutique Hotels", "Private Transfers", "Guided Tours"] },
+              { tier: "Elite",      price: "5,000+",score: "89%", budgetValue: "luxury",     features: ["Luxury Resorts", "Helicopters", "Personal Concierge"] }
             ].map((plan, i) => (
               <div key={i} className="relative h-[420px] perspective">
                 <div className={`relative w-full h-full transition-transform duration-700 preserve-3d ${flippedIndex === i ? "rotate-y-180" : ""}`}>
@@ -436,10 +598,82 @@ export default function LandingPage() {
                     </div>
                   </div>
                   <div className="absolute inset-0 backface-hidden rotate-y-180">
-                    <div className="bg-white/5 border border-white/10 p-10 rounded-[3rem] h-full flex flex-col justify-center items-center text-center">
-                      <h3 className="text-white text-xl font-bold mb-4">{plan.tier} Plan Analysis</h3>
-                      <p className="text-white/60 text-sm mb-6 max-w-xs">This plan is optimized for cost efficiency, travel flexibility, and destination balance.</p>
-                      <button onClick={() => handleFlip(i)} className="text-[#56B7DF] text-sm font-semibold cursor-pointer">← Go Back</button>
+                    <div className="bg-white/5 border border-white/10 rounded-[3rem] h-full flex flex-col overflow-hidden">
+                      {/* Back card header */}
+                      <div className="px-7 pt-7 pb-4 border-b border-white/8">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-[#56B7DF]">
+                              {plan.tier} Destinations
+                            </p>
+                            <h3 className="text-white text-base font-bold mt-0.5">
+                              Where to go on ${plan.price}
+                            </h3>
+                          </div>
+                          <button
+                            onClick={() => handleFlip(i)}
+                            className="text-white/30 hover:text-[#56B7DF] transition-colors text-xs font-bold uppercase tracking-widest cursor-pointer"
+                          >
+                            ← Back
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Scrollable destination list */}
+                      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2"
+                        style={{ scrollbarWidth: 'none' }}>
+                        {destinations.map((dest, di) => (
+                          <button
+                            key={di}
+                            onClick={() => {
+                              sessionStorage.removeItem('tripGenieState');
+                              navigate('/chat', {
+                                state: {
+                                  destination: dest.title,
+                                  budget: plan.budgetValue,
+                                }
+                              });
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all group/dest cursor-pointer"
+                            style={{
+                              background: 'rgba(255,255,255,0.04)',
+                              border: '1px solid rgba(255,255,255,0.06)',
+                            }}
+                            onMouseEnter={e => {
+                              e.currentTarget.style.background = 'rgba(86,183,223,0.10)';
+                              e.currentTarget.style.borderColor = 'rgba(86,183,223,0.30)';
+                            }}
+                            onMouseLeave={e => {
+                              e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)';
+                            }}
+                          >
+                            {/* Vibe icon */}
+                            <span className="text-base flex-shrink-0">{dest.vibeIcon}</span>
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white text-sm font-bold truncate leading-tight">
+                                {dest.title}
+                              </p>
+                              <p className="text-white/40 text-[10px] font-medium truncate">
+                                {dest.location} · {dest.vibe}
+                              </p>
+                            </div>
+                            {/* Arrow */}
+                            <span className="text-[#56B7DF]/40 text-xs flex-shrink-0
+                              group-hover/dest:text-[#56B7DF] transition-colors">
+                              ↗
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Hint */}
+                      <div className="px-7 py-4 border-t border-white/8">
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-white/25 text-center">
+                          Tap a destination to plan with AI
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>

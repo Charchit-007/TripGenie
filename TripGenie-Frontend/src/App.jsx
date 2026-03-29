@@ -9,8 +9,10 @@ import AdminLogin from './Admin/AdminLogin.jsx';
 import AdminProtectedRoute from './AdminProtectedRoute.jsx';
 import ProtectedRoute from './ProtectedRoutes.jsx';
 import Response from './UI_Pages/Response.jsx';
+import SplashScreen from './UI_Pages/SplashScreen.jsx';
+import SettingsPage from './UI_Pages/SettingsPage.jsx';
 
-// --- New Flight Booking Imports ---
+// --- Flight Booking Imports ---
 import FlightsPage from './FlightBooking/FlightsPage.jsx';
 import BookingCheckoutPage from './FlightBooking/BookingCheckoutPage.jsx';
 import BookingTicketPage from './FlightBooking/BookingTicketPage.jsx';
@@ -23,50 +25,38 @@ function App() {
         {/* --- Public Routes --- */}
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<Landing_Page />} />
+        <Route path="/login" element={<Login_Page />} />
+        <Route path="/auth" element={<Login_Page />} />
+        <Route path="/response" element={<Response />} />
+
+        {/* --- Post-login splash --- */}
+        <Route path="/splash" element={<SplashScreen />} />
+
+        {/* --- Settings --- */}
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+
+        {/* --- Admin Routes --- */}
         <Route path="/admin/login" element={<AdminLogin />} />
-        
-        <Route 
-          path="/admin" 
+        <Route
+          path="/admin"
           element={
             <AdminProtectedRoute>
               <Admin />
             </AdminProtectedRoute>
-          } 
+          }
         />
-  
-        <Route path="/login" element={<Login_Page/>} />
-        <Route path="/auth" element={<Login_Page />} />
-        <Route path="/response" element={<Response />} />
 
         {/* --- Protected Routes --- */}
-        <Route 
-          path="/chat" 
-          element={<ProtectedRoute><Chat_UI /></ProtectedRoute>} 
-        />
-        <Route 
-          path="/watchlist" 
-          element={<ProtectedRoute><WatchlistPage /></ProtectedRoute>} 
-        />
+        <Route path="/chat"      element={<ProtectedRoute><Chat_UI /></ProtectedRoute>} />
+        <Route path="/watchlist" element={<ProtectedRoute><WatchlistPage /></ProtectedRoute>} />
 
         {/* --- Flight Booking Routes --- */}
-        <Route 
-          path="/flights" 
-          element={<ProtectedRoute><FlightsPage /></ProtectedRoute>} 
-        />
-        <Route 
-          path="/booking-checkout" 
-          element={<ProtectedRoute><BookingCheckoutPage /></ProtectedRoute>} 
-        />
-        <Route 
-          path="/ticket/:bookingId" 
-          element={<ProtectedRoute><BookingTicketPage /></ProtectedRoute>} 
-        />
-        <Route 
-          path="/bookings" 
-          element={<ProtectedRoute><BookingsPage /></ProtectedRoute>} 
-        />
+        <Route path="/flights"          element={<ProtectedRoute><FlightsPage /></ProtectedRoute>} />
+        <Route path="/booking-checkout" element={<ProtectedRoute><BookingCheckoutPage /></ProtectedRoute>} />
+        <Route path="/ticket/:bookingId" element={<ProtectedRoute><BookingTicketPage /></ProtectedRoute>} />
+        <Route path="/bookings"         element={<ProtectedRoute><BookingsPage /></ProtectedRoute>} />
 
-        {/* Catch-all: Redirect unknown paths to Home */}
+        {/* Catch-all */}
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
     </Router>
