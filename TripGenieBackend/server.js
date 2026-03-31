@@ -1,7 +1,7 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db'); // Your existing DB config
-require('dotenv').config();
 
 const app = express();
 
@@ -22,6 +22,9 @@ app.use('/api/admin', require('./routes/admin'));
 
 //bookings
 app.use('/api/bookings', require('./routes/bookings'));
+
+//feedback
+app.use('/api/feedback', require('./routes/FeedbackRoutes'));
 
 const { startScheduler } = require('./services/notificationScheduler');
 startScheduler();

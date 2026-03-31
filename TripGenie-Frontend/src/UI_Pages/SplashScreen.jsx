@@ -2,32 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 /*
-  MOTION:
+  MOTION: LEFT-TO-RIGHT TAKEOFF
   - Plane SVG is drawn nose-pointing RIGHT (0deg = flying right)
-  - ENTER: comes from top-right → center, so nose points bottom-left = 225deg
-  - IDLE:  levels off, slight tilt = 200deg (gentle bank)
-  - TURN:  banks right, rotating from 200deg → 315deg (nose swings to top-right direction)
-  - EXIT:  shoots out top-right, nose pointing top-right = 315deg  
-            (exits the same side it entered for a "loop" feel)
-  
-  Wait — user said: enters top-right → center → exits top-LEFT
-  So:
-  - ENTER: from top-right, moving toward bottom-left → nose at ~225deg
-  - IDLE:  ~210deg (slight level)
-  - TURN:  bank left, rotating 210 → 135deg (nose swings to point top-left)
-  - EXIT:  shoot out top-left, nose at 135deg
-
-  TIMELINE (~10s):
-  0.0s  — sky, stars, clouds, brand fade in
-  1.5s  — ENTER: plane comes from top-right → center (2.5s ease-out)
-  4.0s  — IDLE: plane rests, engines glow, welcome text
-  6.2s  — TURN: plane banks, rotates toward top-left (0.8s)
-  7.0s  — EXIT: plane shoots top-left (1.0s ease-in)
-  8.0s  — FADE: scene fades out (2s)
-  10.0s — navigate /home
+  - ENTER: Comes from bottom-left → center, pitched slightly up (-10deg) then levels to 0deg.
+  - IDLE:  Rests in center, perfectly level (0deg).
+  - TURN:  Pitches nose up to prepare for takeoff (-25deg).
+  - EXIT:  Shoots out top-right (-25deg).
 */
 
-const P = { INTRO:'intro', ENTER:'enter', IDLE:'idle', TURN:'turn', EXIT:'exit', FADE:'fade' };
+const P = { INTRO: 'intro', ENTER: 'enter', IDLE: 'idle', TURN: 'turn', EXIT: 'exit', FADE: 'fade' };
 
 export default function SplashScreen() {
   const navigate = useNavigate();
@@ -41,68 +24,76 @@ export default function SplashScreen() {
     const t4 = setTimeout(() => setPhase(P.EXIT),  7000);
     const t5 = setTimeout(() => setPhase(P.FADE),  8000);
     const t6 = setTimeout(() => navigate('/home', { replace: true }), 10000);
-    return () => [t1,t2,t3,t4,t5,t6].forEach(clearTimeout);
-  }, []);
+    return () => [t1, t2, t3, t4, t5, t6].forEach(clearTimeout);
+  }, [navigate]);
 
-  const isIdle    = phase === P.IDLE || phase === P.TURN;
+  const isIdle = phase === P.IDLE || phase === P.TURN;
   const isExiting = phase === P.EXIT || phase === P.FADE;
-  const isFading  = phase === P.FADE;
+  const isFading = phase === P.FADE;
 
-  // Each phase: translate + rotate so nose always faces travel direction
-  // The SVG plane is drawn nose-pointing RIGHT
-const planeStyle = (() => {
-  switch (phase) {
-    case P.INTRO:
-      // Off-screen top-right. Nose pointing bottom-left (225deg).
-      return {
-        position: 'absolute', top: '50%', left: '50%',
-        transform: 'translate(calc(-50% + 90vw), calc(-50% - 75vh)) rotate(225deg) scale(0.7)',
-        opacity: 0,
-        transition: 'none',
-      };
+  const planeStyle = (() => {
+    switch (phase) {
+      case P.INTRO:
+        // Off-screen bottom-left. Nose pointing slightly up.
+        return {
+          position: 'absolute', top: '50%', left: '50%',
+          transform: 'translate(calc(-50% - 100vw), calc(-50% + 20vh)) rotate(-10deg) scale(0.7)',
+          opacity: 0,
+          transition: 'none',
+        };
 
-    case P.ENTER:
-      // Glide to center. Keep nose at 225deg (no spinning).
-      return {
-        position: 'absolute', top: '50%', left: '50%',
-        transform: 'translate(-50%, -50%) rotate(225deg) scale(1)',
-        opacity: 1,
-        transition: 'transform 2.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease',
-      };
+      case P.ENTER:
+        // Glide to center and level out to 0deg
+        return {
+          position: 'absolute', top: '50%', left: '50%',
+          transform: 'translate(-50%, -50%) rotate(0deg) scale(1)',
+          opacity: 1,
+          transition: 'transform 2.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease',
+        };
 
-    case P.IDLE:
-      // The "Turn": Smoothly rotate nose from 225deg to 135deg (Top-Left).
-      // We use 135deg so it turns "upwards" and "leftwards".
-      return {
-        position: 'absolute', top: '50%', left: '50%',
-        transform: 'translate(-50%, -50%) rotate(135deg) scale(1)',
-        opacity: 1,
-        transition: 'transform 1.5s ease-in-out',
-      };
+      case P.IDLE:
+        // Rest perfectly level
+        return {
+          position: 'absolute', top: '50%', left: '50%',
+          transform: 'translate(-50%, -50%) rotate(0deg) scale(1)',
+          opacity: 1,
+          transition: 'transform 1.5s ease-in-out',
+        };
 
-    case P.EXIT:
-      // Shoot out top-left. Nose is already aimed at 135deg.
-      return {
-        position: 'absolute', top: '50%', left: '50%',
-        transform: 'translate(calc(-50% - 130vw), calc(-50% - 110vh)) rotate(135deg) scale(1.1)',
-        opacity: 1,
-        transition: 'transform 1.1s cubic-bezier(0.5, 0, 1, 0.5)',
-      };
+      case P.TURN:
+        // Pitch nose up for takeoff
+        return {
+          position: 'absolute', top: '50%', left: '50%',
+          transform: 'translate(-50%, -50%) rotate(-25deg) scale(1)',
+          opacity: 1,
+          transition: 'transform 0.8s ease-in-out',
+        };
 
-    case P.FADE:
-      return {
-        position: 'absolute', top: '50%', left: '50%',
-        transform: 'translate(calc(-50% - 150vw), calc(-50% - 130vh)) rotate(135deg) scale(1.1)',
-        opacity: 0,
-        transition: 'opacity 0.5s ease',
-      };
+      case P.EXIT:
+        // Blast off to top-right
+        return {
+          position: 'absolute', top: '50%', left: '50%',
+          transform: 'translate(calc(-50% + 150vw), calc(-50% - 100vh)) rotate(-25deg) scale(1.1)',
+          opacity: 1,
+          transition: 'transform 1.1s cubic-bezier(0.5, 0, 1, 0.5)',
+        };
 
-    default: 
-      return { position: 'absolute', top: '50%', left: '50%' };
-  }
-})();
-  // Speed lines angle matches exit direction (top-left = -45deg)
-  const speedLineAngle = '-45deg';
+      case P.FADE:
+        // Continue movement while fading
+        return {
+          position: 'absolute', top: '50%', left: '50%',
+          transform: 'translate(calc(-50% + 180vw), calc(-50% - 120vh)) rotate(-25deg) scale(1.1)',
+          opacity: 0,
+          transition: 'opacity 0.5s ease',
+        };
+
+      default:
+        return { position: 'absolute', top: '50%', left: '50%' };
+    }
+  })();
+
+  // Match speed streaks to the takeoff angle
+  const speedLineAngle = '-25deg';
 
   return (
     <div style={{
@@ -135,18 +126,10 @@ const planeStyle = (() => {
         }} />
       ))}
 
-      {/* ── Clouds back ── */}
-      {CLOUDS_BACK.map((c, i) => (
-        <RealCloud key={`b${i}`} c={c} active={phase !== P.INTRO} duration="35s" />
-      ))}
-      {/* ── Clouds mid ── */}
-      {CLOUDS_MID.map((c, i) => (
-        <RealCloud key={`m${i}`} c={c} active={phase !== P.INTRO} duration="22s" />
-      ))}
-      {/* ── Clouds front ── */}
-      {CLOUDS_FRONT.map((c, i) => (
-        <RealCloud key={`f${i}`} c={c} active={phase !== P.INTRO} duration="14s" />
-      ))}
+      {/* ── Clouds ── */}
+      {CLOUDS_BACK.map((c, i) => <RealCloud key={`b${i}`} c={c} active={phase !== P.INTRO} duration="35s" />)}
+      {CLOUDS_MID.map((c, i) => <RealCloud key={`m${i}`} c={c} active={phase !== P.INTRO} duration="22s" />)}
+      {CLOUDS_FRONT.map((c, i) => <RealCloud key={`f${i}`} c={c} active={phase !== P.INTRO} duration="14s" />)}
 
       {/* ── Horizon glow ── */}
       <div style={{
@@ -207,7 +190,8 @@ const planeStyle = (() => {
 
       {/* ── Plane ── */}
       <div style={{ ...planeStyle, zIndex: 10 }}>
-        {/* Ground shadow — rotates opposite to plane so it stays flat */}
+        
+        {/* Ground shadow — perfectly counter-rotates so it stays flat during pitch up */}
         <div style={{
           position: 'absolute',
           top: '50%', left: '50%',
@@ -217,12 +201,16 @@ const planeStyle = (() => {
           background: 'radial-gradient(ellipse, rgba(0,0,0,0.55) 0%, transparent 75%)',
           filter: 'blur(5px)',
           transform: `translate(-50%, 40px) rotate(${
-            phase === P.ENTER ? -225 :
-            phase === P.IDLE  ? -210 :
-            phase === P.TURN  ? -135 :
-            -135
+            phase === P.INTRO ? 10 :
+            phase === P.ENTER ? 0 :
+            phase === P.IDLE  ? 0 :
+            phase === P.TURN  ? 25 :
+            25
           }deg)`,
-          transition: 'width 0.8s ease, height 0.8s ease, transform 0.8s ease',
+          transition: `width 0.8s ease, height 0.8s ease, transform ${
+            phase === P.ENTER ? '2.5s cubic-bezier(0.16, 1, 0.3, 1)' :
+            phase === P.TURN ? '0.8s ease-in-out' : '0.8s ease'
+          }`,
           pointerEvents: 'none',
         }} />
         <PlaneRight glowing={isIdle} banking={phase === P.TURN} />
@@ -232,9 +220,9 @@ const planeStyle = (() => {
       <div style={{
         position: 'absolute', bottom: '15%', left: 0, right: 0,
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-        opacity: (phase === P.IDLE) && !isExiting ? 1 : 0,
+        opacity: phase === P.IDLE ? 1 : 0,
         transform: phase === P.IDLE ? 'translateY(0)' : 'translateY(12px)',
-        transition: 'opacity 0.8s ease 0.5s, transform 0.8s ease 0.5s',
+        transition: 'opacity 0.8s ease, transform 0.8s ease',
         pointerEvents: 'none',
       }}>
         <p style={{ fontSize: 18, fontWeight: 600, color: 'rgba(255,255,255,0.88)', margin: 0 }}>
@@ -263,22 +251,13 @@ const planeStyle = (() => {
           0%,100% { opacity: 0.8; filter: blur(1px); }
           50%     { opacity: 1.0; filter: blur(2px); }
         }
-        @keyframes bankWobble {
-          0%   { transform: translate(-50%,-50%) rotate(210deg) scale(1) translateY(0px); }
-          50%  { transform: translate(-50%,-50%) rotate(214deg) scale(1) translateY(-4px); }
-          100% { transform: translate(-50%,-50%) rotate(210deg) scale(1) translateY(0px); }
-        }
       `}</style>
     </div>
   );
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   PLANE SVG — nose pointing RIGHT (0deg)
-   This way CSS rotation directly = heading direction:
-     225deg = flying bottom-left (entry from top-right)
-     135deg = flying top-left   (exit to top-left)
-   Classic airliner side+top view, clearly recognisable as a plane
+   PLANE SVG 
    ══════════════════════════════════════════════════════════════════════════ */
 function PlaneRight({ glowing, banking }) {
   return (
@@ -291,177 +270,68 @@ function PlaneRight({ glowing, banking }) {
         filter: glowing
           ? 'drop-shadow(0 0 14px rgba(0,212,255,0.6)) drop-shadow(0 4px 16px rgba(0,0,0,0.9))'
           : 'drop-shadow(0 4px 18px rgba(0,0,0,0.9))',
-        transition: 'filter 0.6s ease',
-        // Slight banking tilt during turn
+        transition: 'filter 0.6s ease, transform 0.8s ease-in-out',
+        // Slight 3D banking tilt during takeoff roll
         transform: banking ? 'perspective(300px) rotateX(18deg)' : 'perspective(300px) rotateX(0deg)',
-        transitionProperty: 'filter, transform',
-        transitionDuration: '0.6s',
       }}
     >
-      {/* ══ FUSELAGE — horizontal tube, nose RIGHT ══ */}
       <ellipse cx="125" cy="50" rx="110" ry="13" fill="url(#fuseGrad)" />
-      {/* Fuselage belly (3D bottom edge) */}
-      <path d="M 15 54 Q 70 62 125 63 Q 180 62 235 54 L 235 58 Q 180 66 125 67 Q 70 66 15 58 Z"
-        fill="url(#fuseBellyGrad)" />
-
-      {/* ══ NOSE — pointed right ══ */}
-      <path d="M 232 44 Q 250 48 254 50 Q 250 52 232 56 Z"
-        fill="url(#noseGrad)" />
-
-      {/* ══ COCKPIT WINDOWS ══ */}
+      <path d="M 15 54 Q 70 62 125 63 Q 180 62 235 54 L 235 58 Q 180 66 125 67 Q 70 66 15 58 Z" fill="url(#fuseBellyGrad)" />
+      <path d="M 232 44 Q 250 48 254 50 Q 250 52 232 56 Z" fill="url(#noseGrad)" />
       <ellipse cx="222" cy="46" rx="9" ry="5" fill="url(#cockpitGrad)" opacity="0.95" />
       <ellipse cx="208" cy="45" rx="6" ry="4" fill="url(#cockpitGrad)" opacity="0.75" />
-
-      {/* ══ MAIN WING — swept back, above fuselage ══ */}
-      {/* Wing top surface */}
       <path d="M 155 48 L 190 8 L 205 11 L 175 50 Z" fill="url(#wingGrad)" />
-      {/* Wing underside */}
       <path d="M 155 52 L 190 12 L 205 15 L 175 54 Z" fill="url(#wingUnderGrad)" opacity="0.6" />
-      {/* Wing tip */}
       <path d="M 190 8 L 196 6 L 205 11 L 199 13 Z" fill="#0a4060" />
-      {/* Wing leading edge glow */}
       <path d="M 158 48 L 193 8" stroke="rgba(0,212,255,0.5)" strokeWidth="1.5" strokeLinecap="round" />
-
-      {/* ══ LOWER WING (opposite side, partially visible) ══ */}
-      <path d="M 148 52 L 115 88 L 128 91 L 165 56 Z"
-        fill="url(#wingLowGrad)" opacity="0.75" />
+      <path d="M 148 52 L 115 88 L 128 91 L 165 56 Z" fill="url(#wingLowGrad)" opacity="0.75" />
       <path d="M 115 88 L 121 94 L 128 91 L 122 85 Z" fill="#081520" />
-
-      {/* ══ ENGINE 1 — under upper wing ══ */}
       <ellipse cx="182" cy="28" rx="16" ry="6" fill="url(#engGrad)" />
       <ellipse cx="182" cy="28" rx="16" ry="6" stroke="rgba(0,180,220,0.3)" strokeWidth="0.8" fill="none" />
-      {/* Intake */}
-      <ellipse cx="196" cy="28" rx="6" ry="5"
-        fill={glowing ? 'rgba(0,212,255,0.9)' : 'rgba(0,180,210,0.6)'}
-        style={{ animation: glowing ? 'enginePulse 0.9s ease-in-out infinite' : 'none' }} />
-      {/* Exhaust */}
-      <ellipse cx="168" cy="28" rx="4" ry="3.5"
-        fill={glowing ? 'rgba(100,210,255,0.7)' : 'rgba(0,100,140,0.4)'}
-        style={{ animation: glowing ? 'enginePulse 0.9s ease-in-out infinite 0.2s' : 'none' }} />
-      {glowing && (
-        <ellipse cx="163" cy="28" rx="7" ry="3"
-          fill="rgba(0,212,255,0.3)"
-          style={{ filter: 'blur(3px)', animation: 'lightPulse 0.9s infinite' }} />
-      )}
-      {/* Pylon */}
+      <ellipse cx="196" cy="28" rx="6" ry="5" fill={glowing ? 'rgba(0,212,255,0.9)' : 'rgba(0,180,210,0.6)'} style={{ animation: glowing ? 'enginePulse 0.9s ease-in-out infinite' : 'none' }} />
+      <ellipse cx="168" cy="28" rx="4" ry="3.5" fill={glowing ? 'rgba(100,210,255,0.7)' : 'rgba(0,100,140,0.4)'} style={{ animation: glowing ? 'enginePulse 0.9s ease-in-out infinite 0.2s' : 'none' }} />
+      {glowing && <ellipse cx="163" cy="28" rx="7" ry="3" fill="rgba(0,212,255,0.3)" style={{ filter: 'blur(3px)', animation: 'lightPulse 0.9s infinite' }} />}
       <path d="M 180 36 L 178 48" stroke="rgba(0,150,200,0.4)" strokeWidth="1.5" />
-
-      {/* ══ ENGINE 2 — under lower wing ══ */}
       <ellipse cx="136" cy="70" rx="13" ry="5.5" fill="url(#engGrad)" opacity="0.88" />
       <ellipse cx="136" cy="70" rx="13" ry="5.5" stroke="rgba(0,180,220,0.25)" strokeWidth="0.8" fill="none" />
-      <ellipse cx="147" cy="70" rx="5" ry="4.5"
-        fill={glowing ? 'rgba(0,212,255,0.85)' : 'rgba(0,180,210,0.55)'}
-        style={{ animation: glowing ? 'enginePulse 0.9s ease-in-out infinite 0.15s' : 'none' }} />
-      <ellipse cx="125" cy="70" rx="3.5" ry="3"
-        fill={glowing ? 'rgba(100,210,255,0.65)' : 'rgba(0,100,140,0.35)'}
-        style={{ animation: glowing ? 'enginePulse 0.9s ease-in-out infinite 0.35s' : 'none' }} />
+      <ellipse cx="147" cy="70" rx="5" ry="4.5" fill={glowing ? 'rgba(0,212,255,0.85)' : 'rgba(0,180,210,0.55)'} style={{ animation: glowing ? 'enginePulse 0.9s ease-in-out infinite 0.15s' : 'none' }} />
+      <ellipse cx="125" cy="70" rx="3.5" ry="3" fill={glowing ? 'rgba(100,210,255,0.65)' : 'rgba(0,100,140,0.35)'} style={{ animation: glowing ? 'enginePulse 0.9s ease-in-out infinite 0.35s' : 'none' }} />
       <path d="M 134 60 L 132 52" stroke="rgba(0,150,200,0.35)" strokeWidth="1.5" />
-
-      {/* ══ TAIL — left end of fuselage ══ */}
-      {/* Vertical fin — rises above fuselage */}
       <path d="M 28 50 L 22 22 L 40 36 L 42 52 Z" fill="url(#tailGrad)" />
       <path d="M 40 36 L 46 28 L 22 22 Z" fill="url(#tailTopGrad)" opacity="0.65" />
-      {/* Horizontal stabilizer — upper */}
       <path d="M 30 42 L 8 28 L 16 24 L 40 36 Z" fill="url(#wingGrad)" opacity="0.85" />
-      {/* Horizontal stabilizer — lower */}
       <path d="M 32 56 L 10 68 L 18 72 L 44 60 Z" fill="url(#wingLowGrad)" opacity="0.70" />
-
-      {/* ══ TAIL LIGHT — RED ══ */}
-      <ellipse cx="20" cy="46" rx="4" ry="3"
-        fill={glowing ? '#ff2a2a' : '#991111'}
-        style={{ animation: glowing ? 'lightPulse 1.3s ease-in-out infinite 0.2s' : 'none' }} />
-      {glowing && (
-        <ellipse cx="20" cy="46" rx="8" ry="5"
-          fill="rgba(255,40,40,0.2)" style={{ filter: 'blur(3px)' }} />
-      )}
-
-      {/* ══ NOSE HEADLIGHT — WHITE ══ */}
-      <path d="M 232 45 Q 248 48 252 50 Q 248 52 232 55 L 234 51 Q 240 50 240 50 Q 240 50 234 49 Z"
-        fill="white"
-        opacity={glowing ? 1 : 0.6}
-        style={{ animation: glowing ? 'lightPulse 1.2s ease-in-out infinite' : 'none' }} />
-      {glowing && (
-        <ellipse cx="246" cy="50" rx="12" ry="6"
-          fill="rgba(255,255,255,0.2)" style={{ filter: 'blur(4px)', animation: 'lightPulse 1.2s infinite' }} />
-      )}
-
-      {/* ══ CABIN WINDOWS ══ */}
+      <ellipse cx="20" cy="46" rx="4" ry="3" fill={glowing ? '#ff2a2a' : '#991111'} style={{ animation: glowing ? 'lightPulse 1.3s ease-in-out infinite 0.2s' : 'none' }} />
+      {glowing && <ellipse cx="20" cy="46" rx="8" ry="5" fill="rgba(255,40,40,0.2)" style={{ filter: 'blur(3px)' }} />}
+      <path d="M 232 45 Q 248 48 252 50 Q 248 52 232 55 L 234 51 Q 240 50 240 50 Q 240 50 234 49 Z" fill="white" opacity={glowing ? 1 : 0.6} style={{ animation: glowing ? 'lightPulse 1.2s ease-in-out infinite' : 'none' }} />
+      {glowing && <ellipse cx="246" cy="50" rx="12" ry="6" fill="rgba(255,255,255,0.2)" style={{ filter: 'blur(4px)', animation: 'lightPulse 1.2s infinite' }} />}
       {[220, 206, 192, 178, 164, 150, 136, 122, 108, 94, 80, 66, 52].map((cx, i) => (
-        <ellipse key={i} cx={cx} cy={47} rx="5" ry="3.5"
-          fill="url(#winGrad)"
-          opacity={glowing ? 0.92 : 0.55 + (i % 4) * 0.08}
-          style={{ transition: 'opacity 0.5s ease' }} />
+        <ellipse key={i} cx={cx} cy={47} rx="5" ry="3.5" fill="url(#winGrad)" opacity={glowing ? 0.92 : 0.55 + (i % 4) * 0.08} style={{ transition: 'opacity 0.5s ease' }} />
       ))}
-
-      {/* ══ FUSELAGE HIGHLIGHT ══ */}
-      <path d="M 30 44 Q 130 38 230 44"
-        stroke="rgba(255,255,255,0.10)" strokeWidth="2" fill="none" strokeLinecap="round" />
-
-      {/* ══ WING NAV LIGHTS ══ */}
+      <path d="M 30 44 Q 130 38 230 44" stroke="rgba(255,255,255,0.10)" strokeWidth="2" fill="none" strokeLinecap="round" />
       {glowing && (
         <>
-          <circle cx="196" cy="6" r="2.5" fill="rgba(0,212,255,0.9)"
-            style={{ animation: 'lightPulse 1s ease-in-out infinite' }} />
-          <circle cx="120" cy="92" r="2" fill="rgba(0,255,100,0.9)"
-            style={{ animation: 'lightPulse 1.1s ease-in-out infinite 0.3s' }} />
+          <circle cx="196" cy="6" r="2.5" fill="rgba(0,212,255,0.9)" style={{ animation: 'lightPulse 1s ease-in-out infinite' }} />
+          <circle cx="120" cy="92" r="2" fill="rgba(0,255,100,0.9)" style={{ animation: 'lightPulse 1.1s ease-in-out infinite 0.3s' }} />
         </>
       )}
-
       <defs>
-        <linearGradient id="fuseGrad" x1="15" y1="37" x2="240" y2="63" gradientUnits="userSpaceOnUse">
-          <stop offset="0%"   stopColor="#0d2535" />
-          <stop offset="30%"  stopColor="#163650" />
-          <stop offset="65%"  stopColor="#1e4d70" />
-          <stop offset="100%" stopColor="#d0eeff" />
-        </linearGradient>
-        <linearGradient id="fuseBellyGrad" x1="15" y1="63" x2="235" y2="67" gradientUnits="userSpaceOnUse">
-          <stop offset="0%"   stopColor="#060e18" />
-          <stop offset="100%" stopColor="#0a1824" />
-        </linearGradient>
-        <linearGradient id="noseGrad" x1="232" y1="44" x2="254" y2="56" gradientUnits="userSpaceOnUse">
-          <stop offset="0%"   stopColor="#c8eaff" />
-          <stop offset="100%" stopColor="#0d2535" />
-        </linearGradient>
-        <linearGradient id="cockpitGrad" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
-          <stop offset="0%"   stopColor="#7ad4f0" />
-          <stop offset="100%" stopColor="#003a55" />
-        </linearGradient>
-        <linearGradient id="wingGrad" x1="155" y1="8" x2="205" y2="54" gradientUnits="userSpaceOnUse">
-          <stop offset="0%"   stopColor="#00d4ff" stopOpacity="0.95" />
-          <stop offset="55%"  stopColor="#0a6585" />
-          <stop offset="100%" stopColor="#0a1e30" />
-        </linearGradient>
-        <linearGradient id="wingUnderGrad" x1="155" y1="54" x2="205" y2="8" gradientUnits="userSpaceOnUse">
-          <stop offset="0%"   stopColor="#060e18" />
-          <stop offset="100%" stopColor="#0a2840" />
-        </linearGradient>
-        <linearGradient id="wingLowGrad" x1="115" y1="91" x2="165" y2="48" gradientUnits="userSpaceOnUse">
-          <stop offset="0%"   stopColor="#060e18" />
-          <stop offset="100%" stopColor="#163650" />
-        </linearGradient>
-        <linearGradient id="tailGrad" x1="22" y1="22" x2="42" y2="54" gradientUnits="userSpaceOnUse">
-          <stop offset="0%"   stopColor="#00d4ff" stopOpacity="0.8" />
-          <stop offset="100%" stopColor="#081520" />
-        </linearGradient>
-        <linearGradient id="tailTopGrad" x1="22" y1="22" x2="46" y2="36" gradientUnits="userSpaceOnUse">
-          <stop offset="0%"   stopColor="#1a5878" />
-          <stop offset="100%" stopColor="#0a1e2c" />
-        </linearGradient>
-        <linearGradient id="engGrad" x1="166" y1="22" x2="198" y2="34" gradientUnits="userSpaceOnUse">
-          <stop offset="0%"   stopColor="#0a3a55" />
-          <stop offset="50%"  stopColor="#1a5878" />
-          <stop offset="100%" stopColor="#081520" />
-        </linearGradient>
-        <linearGradient id="winGrad" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
-          <stop offset="0%"   stopColor="#a8eeff" />
-          <stop offset="100%" stopColor="#00446a" />
-        </linearGradient>
+        <linearGradient id="fuseGrad" x1="15" y1="37" x2="240" y2="63" gradientUnits="userSpaceOnUse"><stop offset="0%" stopColor="#0d2535" /><stop offset="30%" stopColor="#163650" /><stop offset="65%" stopColor="#1e4d70" /><stop offset="100%" stopColor="#d0eeff" /></linearGradient>
+        <linearGradient id="fuseBellyGrad" x1="15" y1="63" x2="235" y2="67" gradientUnits="userSpaceOnUse"><stop offset="0%" stopColor="#060e18" /><stop offset="100%" stopColor="#0a1824" /></linearGradient>
+        <linearGradient id="noseGrad" x1="232" y1="44" x2="254" y2="56" gradientUnits="userSpaceOnUse"><stop offset="0%" stopColor="#c8eaff" /><stop offset="100%" stopColor="#0d2535" /></linearGradient>
+        <linearGradient id="cockpitGrad" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox"><stop offset="0%" stopColor="#7ad4f0" /><stop offset="100%" stopColor="#003a55" /></linearGradient>
+        <linearGradient id="wingGrad" x1="155" y1="8" x2="205" y2="54" gradientUnits="userSpaceOnUse"><stop offset="0%" stopColor="#00d4ff" stopOpacity="0.95" /><stop offset="55%" stopColor="#0a6585" /><stop offset="100%" stopColor="#0a1e30" /></linearGradient>
+        <linearGradient id="wingUnderGrad" x1="155" y1="54" x2="205" y2="8" gradientUnits="userSpaceOnUse"><stop offset="0%" stopColor="#060e18" /><stop offset="100%" stopColor="#0a2840" /></linearGradient>
+        <linearGradient id="wingLowGrad" x1="115" y1="91" x2="165" y2="48" gradientUnits="userSpaceOnUse"><stop offset="0%" stopColor="#060e18" /><stop offset="100%" stopColor="#163650" /></linearGradient>
+        <linearGradient id="tailGrad" x1="22" y1="22" x2="42" y2="54" gradientUnits="userSpaceOnUse"><stop offset="0%" stopColor="#00d4ff" stopOpacity="0.8" /><stop offset="100%" stopColor="#081520" /></linearGradient>
+        <linearGradient id="tailTopGrad" x1="22" y1="22" x2="46" y2="36" gradientUnits="userSpaceOnUse"><stop offset="0%" stopColor="#1a5878" /><stop offset="100%" stopColor="#0a1e2c" /></linearGradient>
+        <linearGradient id="engGrad" x1="166" y1="22" x2="198" y2="34" gradientUnits="userSpaceOnUse"><stop offset="0%" stopColor="#0a3a55" /><stop offset="50%" stopColor="#1a5878" /><stop offset="100%" stopColor="#081520" /></linearGradient>
+        <linearGradient id="winGrad" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox"><stop offset="0%" stopColor="#a8eeff" /><stop offset="100%" stopColor="#00446a" /></linearGradient>
       </defs>
     </svg>
   );
 }
 
-/* ── Cloud component ──────────────────────────────────────────────────── */
 function RealCloud({ c, active, duration }) {
   const w = c.w, h = c.h;
   return (
@@ -486,26 +356,16 @@ function RealCloud({ c, active, duration }) {
   );
 }
 
-/* ── Data ─────────────────────────────────────────────────────────────── */
 const STARS = [
-  { x:'8%',  y:'4%',  r:3, o:0.95, d:'0.0s' },
-  { x:'22%', y:'7%',  r:3, o:0.90, d:'0.3s' },
-  { x:'51%', y:'3%',  r:3, o:0.95, d:'0.2s' },
-  { x:'73%', y:'6%',  r:3, o:0.88, d:'0.4s' },
-  { x:'91%', y:'4%',  r:3, o:0.92, d:'0.1s' },
-  { x:'14%', y:'12%', r:2, o:0.80, d:'0.2s' },
-  { x:'34%', y:'8%',  r:2, o:0.75, d:'0.1s' },
-  { x:'62%', y:'11%', r:2, o:0.78, d:'0.5s' },
-  { x:'82%', y:'13%', r:2, o:0.72, d:'0.3s' },
-  { x:'44%', y:'15%', r:2, o:0.70, d:'0.4s' },
-  { x:'5%',  y:'20%', r:1, o:0.65, d:'0.6s' },
-  { x:'28%', y:'16%', r:1, o:0.60, d:'0.2s' },
-  { x:'58%', y:'18%', r:1, o:0.62, d:'0.5s' },
-  { x:'77%', y:'17%', r:1, o:0.58, d:'0.3s' },
-  { x:'93%', y:'14%', r:1, o:0.65, d:'0.1s' },
-  { x:'38%', y:'22%', r:1, o:0.55, d:'0.7s' },
-  { x:'67%', y:'21%', r:1, o:0.58, d:'0.4s' },
-  { x:'88%', y:'22%', r:1, o:0.52, d:'0.6s' },
+  { x:'8%',  y:'4%',  r:3, o:0.95, d:'0.0s' }, { x:'22%', y:'7%',  r:3, o:0.90, d:'0.3s' },
+  { x:'51%', y:'3%',  r:3, o:0.95, d:'0.2s' }, { x:'73%', y:'6%',  r:3, o:0.88, d:'0.4s' },
+  { x:'91%', y:'4%',  r:3, o:0.92, d:'0.1s' }, { x:'14%', y:'12%', r:2, o:0.80, d:'0.2s' },
+  { x:'34%', y:'8%',  r:2, o:0.75, d:'0.1s' }, { x:'62%', y:'11%', r:2, o:0.78, d:'0.5s' },
+  { x:'82%', y:'13%', r:2, o:0.72, d:'0.3s' }, { x:'44%', y:'15%', r:2, o:0.70, d:'0.4s' },
+  { x:'5%',  y:'20%', r:1, o:0.65, d:'0.6s' }, { x:'28%', y:'16%', r:1, o:0.60, d:'0.2s' },
+  { x:'58%', y:'18%', r:1, o:0.62, d:'0.5s' }, { x:'77%', y:'17%', r:1, o:0.58, d:'0.3s' },
+  { x:'93%', y:'14%', r:1, o:0.65, d:'0.1s' }, { x:'38%', y:'22%', r:1, o:0.55, d:'0.7s' },
+  { x:'67%', y:'21%', r:1, o:0.58, d:'0.4s' }, { x:'88%', y:'22%', r:1, o:0.52, d:'0.6s' },
 ];
 
 const CLOUDS_BACK = [
