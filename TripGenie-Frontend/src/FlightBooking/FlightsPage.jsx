@@ -47,7 +47,7 @@ const FlightsPage = () => {
       });
 
       const data = await response.json();
-      
+      console.log('API response:', JSON.stringify(data, null, 2)); // 👈 add this
       if (data.error) throw new Error(data.error);
       
       setFlightData(data);
@@ -193,7 +193,7 @@ const FlightsPage = () => {
             <div>
               <h3 className="text-xl font-bold mb-6 text-gray-400">Other Available Flights</h3>
               <div className="grid gap-4">
-                {flightData.all_options.filter(f => f.id !== flightData.recommended?.id).map((flight, idx) => (
+                {(flightData.all_options ?? []).filter(f => f.id !== flightData.recommended?.id).map((flight, idx) => (
                   <div key={flight.id || idx} className="flex flex-col md:flex-row justify-between items-center bg-[#0f2733] p-5 rounded-xl border border-gray-800 hover:border-gray-600 transition">
                     <div className="flex-1 w-full mb-4 md:mb-0 flex gap-6 items-center">
                       <div className="w-12 h-12 bg-[#0B1D26] rounded-full flex items-center justify-center font-bold text-gray-400">

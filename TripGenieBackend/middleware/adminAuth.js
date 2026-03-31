@@ -10,7 +10,7 @@ module.exports = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (decoded.role !== 'admin') {
+    if (!decoded.role.includes('admin')) {
       return res.status(403).json({ error: 'Access denied. Admins only.' });
     }
 

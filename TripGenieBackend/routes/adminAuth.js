@@ -14,7 +14,7 @@ router.post('/login', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    if (user.role !== 'admin') {
+    if (!user.role.includes('admin')) {
       return res.status(403).json({ error: 'Access denied. Not an admin.' });
     }
 

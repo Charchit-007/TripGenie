@@ -36,9 +36,9 @@ function App() {
         <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
 
         {/* --- Admin Routes --- */}
-        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin" element={<AdminLogin />} />
         <Route
-          path="/admin"
+          path="/admin/dashboard"
           element={
             <AdminProtectedRoute>
               <Admin />

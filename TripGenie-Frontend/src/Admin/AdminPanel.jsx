@@ -14,12 +14,17 @@ const TripGenieAdmin = () => {
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [users, setUsers] = useState([]);
+  const [admins, setAdmins] = useState([]);
   const [trips, setTrips] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedTrip, setSelectedTrip] = useState(null);
+  const [selectedUserForRole, setSelectedUserForRole] = useState(null);
+  const [selectedUserRoles, setSelectedUserRoles] = useState([]);
+  const [selectedAdminToRemove, setSelectedAdminToRemove] = useState(null);
 
   const adminName = localStorage.getItem('adminName');
 
@@ -30,7 +35,7 @@ const TripGenieAdmin = () => {
   const fetchAll = async () => {
     setIsLoading(true);
     try {
-      await Promise.all([fetchUsers(), fetchTrips(), fetchStats()]);
+      await Promise.all([fetchUsers(), fetchAdmins(), fetchTrips(), fetchStats(), fetchBookings()]);
     } finally {
       setIsLoading(false);
     }
@@ -66,6 +71,26 @@ const TripGenieAdmin = () => {
     }
   };
 
+  const fetchAdmins = async () => {
+    try {
+      const res = await fetch(`${ADMIN_URL}/api/admin/admins`, { headers: authHeaders });
+      const data = await res.json();
+      setAdmins(data.admins || []);
+    } catch (err) {
+      console.error('Failed to fetch admins:', err);
+    }
+  };
+
+  const fetchBookings = async () => {
+    try {
+      const res = await fetch(`${ADMIN_URL}/api/admin/bookings`, { headers: authHeaders });
+      const data = await res.json();
+      setBookings(data.bookings || []);
+    } catch (err) {
+      console.error('Failed to fetch bookings:', err);
+    }
+  };
+
   const handleDeleteUser = async (userId) => {
     if (!window.confirm('Delete this user and all their trips?')) return;
     const res = await fetch(`${ADMIN_URL}/api/admin/users/${userId}`, {
@@ -88,6 +113,68 @@ const TripGenieAdmin = () => {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminName');
     window.location.href = '/admin/login';
+  };
+
+  const handleOpenRoleModal = (user) => {
+    setSelectedUserForRole(user);
+    setSelectedUserRoles(user.role || ['user']);
+  };
+
+  const handleToggleRole = (role) => {
+    setSelectedUserRoles(prev => {
+      if (prev.includes(role)) {
+        return prev.filter(r => r !== role);
+      } else {
+        return [...prev, role];
+      }
+    });
+  };
+
+  const handleSaveRoles = async () => {
+    if (selectedUserRoles.length === 0) {
+      alert('User must have at least one role');
+      return;
+    }
+    const res = await fetch(`${ADMIN_URL}/api/admin/users/${selectedUserForRole._id}/role`, {
+      method: 'PATCH',
+      headers: authHeaders,
+      body: JSON.stringify({ roles: selectedUserRoles })
+    });
+    if (res.ok) {
+      fetchUsers();
+      setSelectedUserForRole(null);
+      setSelectedUserRoles([]);
+    } else {
+      alert('Failed to update roles');
+    }
+  };
+
+  const handleUpdateBookingStatus = async (bookingId, newStatus) => {
+    const res = await fetch(`${ADMIN_URL}/api/admin/bookings/${bookingId}`, {
+      method: 'PATCH',
+      headers: authHeaders,
+      body: JSON.stringify({ status: newStatus })
+    });
+    if (res.ok) {
+      fetchBookings();
+    } else {
+      alert('Failed to update booking status');
+    }
+  };
+
+  const handleRemoveAdminRole = async (userId) => {
+    if (!window.confirm('Remove admin role from this user?')) return;
+    const res = await fetch(`${ADMIN_URL}/api/admin/users/${userId}/role`, {
+      method: 'PATCH',
+      headers: authHeaders,
+      body: JSON.stringify({ roles: ['user'] })
+    });
+    if (res.ok) {
+      fetchAdmins();
+      setSelectedAdminToRemove(null);
+    } else {
+      alert('Failed to remove admin role');
+    }
   };
 
   // Real stats from API
@@ -185,6 +272,16 @@ const TripGenieAdmin = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" />
             )
+          },
+          {
+            label: 'Total Admins',
+            value: admins.length,
+            change: 'Admin users',
+            gradient: 'from-purple-400 to-purple-600',
+            icon: (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m12 0a2 2 0 100 4m0-4a2 2 0 110 4m-6-8a2 2 0 100-4m0 4a2 2 0 110-4" />
+            )
           }
         ].map((card, i) => (
           <div key={i} className="bg-white rounded-2xl p-7 shadow-md border border-black/[0.04] flex gap-5 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
@@ -268,7 +365,7 @@ const TripGenieAdmin = () => {
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gradient-to-r from-teal-50 to-cyan-50">
-              {['Name', 'Email', 'Join Date', 'Trip Plans', 'Actions'].map(h => (
+              {['Name', 'Email', 'Roles', 'Join Date', 'Trip Plans', 'Actions'].map(h => (
                 <th key={h} className="px-6 py-5 text-left text-xs font-bold text-cyan-800 uppercase tracking-wider">{h}</th>
               ))}
             </tr>
@@ -285,6 +382,19 @@ const TripGenieAdmin = () => {
                   </div>
                 </td>
                 <td className="px-6 py-5 text-gray-600">{user.email}</td>
+                <td className="px-6 py-5">
+                  <div className="flex gap-2 flex-wrap">
+                    {(user.role || ['user']).map(role => (
+                      <span key={role} className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold ${
+                        role === 'admin' 
+                          ? 'bg-purple-500/10 text-purple-700' 
+                          : 'bg-cyan-500/10 text-cyan-700'
+                      }`}>
+                        {role}
+                      </span>
+                    ))}
+                  </div>
+                </td>
                 <td className="px-6 py-5 text-gray-600">{new Date(user.createdAt).toLocaleDateString()}</td>
                 <td className="px-6 py-5">
                   <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/10 text-cyan-700">
@@ -292,9 +402,146 @@ const TripGenieAdmin = () => {
                   </span>
                 </td>
                 <td className="px-6 py-5">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleOpenRoleModal(user)}
+                      className="w-9 h-9 rounded-lg bg-purple-500/10 text-purple-600 hover:bg-purple-500 hover:text-white flex items-center justify-center transition-all hover:scale-110"
+                      title="Assign roles"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                          d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m12 0a2 2 0 100 4m0-4a2 2 0 110 4m-6-8a2 2 0 100-4m0 4a2 2 0 110-4" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteUser(user._id)}
+                      className="w-9 h-9 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all hover:scale-110"
+                      title="Delete user"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {users.length === 0 && (
+          <div className="text-center py-16 text-gray-400 font-medium">No users found</div>
+        )}
+      </div>
+
+      {/* Role Assignment Modal */}
+      {selectedUserForRole && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-8"
+          onClick={() => setSelectedUserForRole(null)}
+        >
+          <div
+            className="bg-white rounded-3xl max-w-sm w-full shadow-[0_20px_60px_rgba(0,0,0,0.3)]"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center px-8 py-6 border-b border-black/[0.06]">
+              <h3 className="text-2xl font-bold text-gray-800">Assign Roles</h3>
+              <button
+                onClick={() => setSelectedUserForRole(null)}
+                className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-600 hover:bg-cyan-500 hover:text-white flex items-center justify-center transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-8 space-y-6">
+              <div>
+                <p className="text-sm text-gray-600 mb-4">Assign roles for <span className="font-semibold text-gray-800">{selectedUserForRole.name}</span></p>
+                <div className="space-y-3">
+                  {['user', 'admin'].map(role => (
+                    <label key={role} className="flex items-center gap-3 cursor-pointer p-4 rounded-xl border-2 border-gray-200 hover:border-cyan-400 hover:bg-cyan-50/30 transition-all">
+                      <input
+                        type="checkbox"
+                        checked={selectedUserRoles.includes(role)}
+                        onChange={() => handleToggleRole(role)}
+                        className="w-5 h-5 rounded accent-cyan-500 cursor-pointer"
+                      />
+                      <div>
+                        <p className="font-semibold text-gray-800 capitalize">{role}</p>
+                        <p className="text-sm text-gray-500">
+                          {role === 'admin' ? 'Access to admin dashboard' : 'Regular user access'}
+                        </p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 px-8 py-6 border-t border-black/[0.06]">
+              <button
+                onClick={() => setSelectedUserForRole(null)}
+                className="px-7 py-3.5 rounded-xl bg-white text-cyan-600 font-semibold border-2 border-cyan-500 hover:bg-cyan-500/10 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveRoles}
+                className="px-7 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-semibold hover:shadow-lg hover:shadow-cyan-500/30 transition-all"
+              >
+                Save Roles
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // ─── Admins View ────────────────────────────────────────────────────────────
+  const AdminsView = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-3xl font-extrabold text-cyan-800" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Admin Management</h2>
+        <span className="inline-flex items-center px-4 py-2 rounded-xl bg-purple-100 text-purple-700 font-semibold text-sm">
+          {admins.length} {admins.length === 1 ? 'Admin' : 'Admins'}
+        </span>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-md border border-black/[0.04] overflow-hidden">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gradient-to-r from-purple-50 to-pink-50">
+              {['Name', 'Email', 'Join Date', 'Trips Created', 'Actions'].map(h => (
+                <th key={h} className="px-6 py-5 text-left text-xs font-bold text-purple-800 uppercase tracking-wider">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {admins.map(admin => (
+              <tr key={admin._id} className="border-t border-black/[0.06] hover:bg-purple-500/5 transition-colors">
+                <td className="px-6 py-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-bold text-base">
+                      {admin.name?.charAt(0)}
+                    </div>
+                    <span className="font-medium text-gray-800">{admin.name}</span>
+                  </div>
+                </td>
+                <td className="px-6 py-5 text-gray-600">{admin.email}</td>
+                <td className="px-6 py-5 text-gray-600">{new Date(admin.createdAt).toLocaleDateString()}</td>
+                <td className="px-6 py-5">
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-500/10 text-purple-700">
+                    {admin.totalTrips} plans
+                  </span>
+                </td>
+                <td className="px-6 py-5">
                   <button
-                    onClick={() => handleDeleteUser(user._id)}
+                    onClick={() => setSelectedAdminToRemove(admin)}
                     className="w-9 h-9 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all hover:scale-110"
+                    title="Remove admin role"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -306,10 +553,66 @@ const TripGenieAdmin = () => {
             ))}
           </tbody>
         </table>
-        {users.length === 0 && (
-          <div className="text-center py-16 text-gray-400 font-medium">No users found</div>
+        {admins.length === 0 && (
+          <div className="text-center py-16 text-gray-400 font-medium">No admins found</div>
         )}
       </div>
+
+      {/* Remove Admin Modal */}
+      {selectedAdminToRemove && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-8"
+          onClick={() => setSelectedAdminToRemove(null)}
+        >
+          <div
+            className="bg-white rounded-3xl max-w-sm w-full shadow-[0_20px_60px_rgba(0,0,0,0.3)]"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center px-8 py-6 border-b border-black/[0.06]">
+              <h3 className="text-2xl font-bold text-gray-800">Remove Admin Role</h3>
+              <button
+                onClick={() => setSelectedAdminToRemove(null)}
+                className="w-10 h-10 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-8 space-y-6">
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-sm text-red-800">
+                  <span className="font-semibold">{selectedAdminToRemove.name}</span> will be demoted to a regular user and lose all admin privileges.
+                </p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                <h4 className="text-sm font-semibold text-gray-700">Admin Details</h4>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p><span className="font-medium">Email:</span> {selectedAdminToRemove.email}</p>
+                  <p><span className="font-medium">Since:</span> {new Date(selectedAdminToRemove.createdAt).toLocaleDateString()}</p>
+                  <p><span className="font-medium">Trip Plans:</span> {selectedAdminToRemove.totalTrips || 0}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 px-8 py-6 border-t border-black/[0.06]">
+              <button
+                onClick={() => setSelectedAdminToRemove(null)}
+                className="px-7 py-3.5 rounded-xl bg-white text-gray-600 font-semibold border-2 border-gray-200 hover:bg-gray-50 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleRemoveAdminRole(selectedAdminToRemove._id)}
+                className="px-7 py-3.5 rounded-xl bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold hover:shadow-lg hover:shadow-red-500/30 transition-all"
+              >
+                Remove Admin Role
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -505,7 +808,83 @@ const TripGenieAdmin = () => {
     </div>
   );
 
-  // ─── Main Layout ───────────────────────────────────────────────────────────
+  // ─── Bookings View ────────────────────────────────────────────────────────
+  const BookingsView = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-3xl font-extrabold text-cyan-800" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Bookings Management</h2>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-md border border-black/[0.04] overflow-hidden">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gradient-to-r from-teal-50 to-cyan-50">
+              {['Booking Ref', 'User', 'Destination', 'Amount', 'Status', 'Date', 'Actions'].map(h => (
+                <th key={h} className="px-6 py-5 text-left text-xs font-bold text-cyan-800 uppercase tracking-wider">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {bookings.map(booking => (
+              <tr key={booking._id} className="border-t border-black/[0.06] hover:bg-cyan-500/5 transition-colors">
+                <td className="px-6 py-5 font-mono font-semibold text-cyan-600">{booking.bookingReference}</td>
+                <td className="px-6 py-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center text-white font-bold">
+                      {booking.userId?.name?.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">{booking.userId?.name}</p>
+                      <p className="text-sm text-gray-500">{booking.userId?.email}</p>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-5 text-gray-600">{booking.tripId?.destination}</td>
+                <td className="px-6 py-5">
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-700">
+                    {booking.totalPaid} {booking.currency}
+                  </span>
+                </td>
+                <td className="px-6 py-5">
+                  <select
+                    value={booking.status}
+                    onChange={(e) => handleUpdateBookingStatus(booking._id, e.target.value)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border-none cursor-pointer ${
+                      booking.status === 'CONFIRMED'
+                        ? 'bg-emerald-500/10 text-emerald-700'
+                        : booking.status === 'CANCELLED'
+                        ? 'bg-red-500/10 text-red-700'
+                        : 'bg-amber-500/10 text-amber-700'
+                    }`}
+                  >
+                    <option value="CONFIRMED">Confirmed</option>
+                    <option value="CANCELLED">Cancelled</option>
+                    <option value="FLIGHT_CHANGED">Flight Changed</option>
+                  </select>
+                </td>
+                <td className="px-6 py-5 text-sm text-gray-600">{new Date(booking.bookingDate).toLocaleDateString()}</td>
+                <td className="px-6 py-5">
+                  <button
+                    title="View details"
+                    className="w-9 h-9 rounded-lg bg-cyan-500/10 text-cyan-600 hover:bg-cyan-500 hover:text-white flex items-center justify-center transition-all hover:scale-110"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {bookings.length === 0 && (
+          <div className="text-center py-16 text-gray-400 font-medium">No bookings found</div>
+        )}
+      </div>
+    </div>
+  );
   return (
     <>
       <style>{`
@@ -552,8 +931,16 @@ const TripGenieAdmin = () => {
                 icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               },
               {
+                id: 'admins', label: 'Admins',
+                icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m12 0a2 2 0 100 4m0-4a2 2 0 110 4m-6-8a2 2 0 100-4m0 4a2 2 0 110-4" />
+              },
+              {
                 id: 'trips', label: 'Trip Plans',
                 icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              },
+              {
+                id: 'bookings', label: 'Bookings',
+                icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               }
             ].map(item => (
               <button
@@ -608,12 +995,16 @@ const TripGenieAdmin = () => {
               <h1 className="text-3xl font-extrabold bg-gradient-to-r from-cyan-500 to-sky-600 bg-clip-text text-transparent mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
                 {activeTab === 'dashboard' && 'Dashboard Overview'}
                 {activeTab === 'users' && 'User Management'}
+                {activeTab === 'admins' && 'Admin Management'}
                 {activeTab === 'trips' && 'Trip Plans Management'}
+                {activeTab === 'bookings' && 'Bookings Management'}
               </h1>
               <p className="text-gray-500 text-sm">
                 {activeTab === 'dashboard' && "Welcome back! Here's what's happening with TripGenie today."}
                 {activeTab === 'users' && 'Manage and monitor all registered users.'}
+                {activeTab === 'admins' && 'Manage administrator accounts and permissions.'}
                 {activeTab === 'trips' && 'View and manage all trip plans created by users.'}
+                {activeTab === 'bookings' && 'Manage flight bookings and update booking statuses.'}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -634,7 +1025,9 @@ const TripGenieAdmin = () => {
           <div className="flex-1 p-12 overflow-y-auto">
             {activeTab === 'dashboard' && <DashboardView />}
             {activeTab === 'users' && <UsersView />}
+            {activeTab === 'admins' && <AdminsView />}
             {activeTab === 'trips' && <TripsView />}
+            {activeTab === 'bookings' && <BookingsView />}
           </div>
         </main>
       </div>
