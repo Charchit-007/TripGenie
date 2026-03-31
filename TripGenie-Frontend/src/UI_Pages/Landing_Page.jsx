@@ -786,10 +786,10 @@ export default function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-[100] flex justify-center pt-8 px-10 pointer-events-none">
         <div className="flex items-center justify-center bg-[#0B1D26]/40 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-2.5 pointer-events-auto shadow-2xl">
           <div className="flex items-center gap-1">
-            {['Home', 'About', 'Gallery', 'Feature', 'Contact Us'].map((item) => (
+            {['Home', 'top picks', 'budget cards', 'live intel', 'About us'].map((item) => (
               <button key={item}
                 onClick={() => {
-                  const idMap = { 'Home': 'hero', 'About': 'popular-destinations', 'Gallery': 'budget', 'Feature': 'map', 'Contact Us': 'footer' };
+                  const idMap = { 'Home': 'hero', 'top picks': 'popular-destinations', 'budget cards': 'budget', 'live intel': 'map', 'About us': 'footer' };
                   document.getElementById(idMap[item])?.scrollIntoView({ behavior: 'smooth' });
                 }}
                 className="px-4 py-1 text-[14px] font-black uppercase tracking-[0.15em] text-white hover:text-[#56B7DF] transition-all cursor-pointer"
