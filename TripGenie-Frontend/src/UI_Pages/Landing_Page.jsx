@@ -1,18 +1,94 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  User, Mountain, ChevronDown, 
+import {
+  User, Mountain, ChevronDown,
   Zap, Shield, Bell, CheckCheck, X,
   Bookmark, Ticket, Settings, LogOut, ChevronRight,
   Instagram, Twitter, Linkedin, MapPin, Mail, Phone,
   Brain, Clock, Wallet, Globe, Star, Sparkles
 } from 'lucide-react';
 import { useNotifications } from '../hooks/useNotifications.js';
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-const HikerHero = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b"; 
+const HikerHero = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b";
+
+// Coordinates lookup for all possible destinations
+const destinationCoords = {
+  "Maldives":     [3.2028, 73.2207],
+  "Rajasthan":    [27.0238, 74.2179],
+  "Dubai":        [25.2048, 55.2708],
+  "Bangkok":      [13.7563, 100.5018],
+  "Queenstown":   [-45.0312, 168.6626],
+  "Kyoto":        [35.0116, 135.7681],
+  "Santorini":    [36.3932, 25.4615],
+  "Amsterdam":    [52.3676, 4.9041],
+  "Tuscany":      [43.7711, 11.2486],
+  "Barcelona":    [41.3851, 2.1734],
+  "Bali":         [-8.3405, 115.0920],
+  "Amalfi Coast": [40.6340, 14.6027],
+  "Dubrovnik":    [42.6507, 18.0944],
+  "Swiss Alps":   [46.8182, 8.2275],
+  "Iceland":      [64.9631, -19.0208],
+  "New England":  [44.0, -71.5],
+  "Prague":       [50.0755, 14.4378],
+  "Inca Trail":   [-13.1631, -72.5450],
+  "Istanbul":     [41.0082, 28.9784],
+};
+
+// Custom zoom control component (rendered inside MapContainer)
+function ZoomControls() {
+  const map = useMap();
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        bottom: 16,
+        right: 16,
+        zIndex: 1000,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 4,
+      }}
+    >
+      <button
+        onClick={() => map.zoomIn()}
+        style={{
+          width: 36, height: 36,
+          borderRadius: 12,
+          background: 'rgba(11,29,38,0.9)',
+          border: '1px solid rgba(86,183,223,0.3)',
+          backdropFilter: 'blur(8px)',
+          color: 'white',
+          fontSize: 20,
+          fontWeight: 900,
+          cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(86,183,223,0.25)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'rgba(11,29,38,0.9)'}
+      >+</button>
+      <button
+        onClick={() => map.zoomOut()}
+        style={{
+          width: 36, height: 36,
+          borderRadius: 12,
+          background: 'rgba(11,29,38,0.9)',
+          border: '1px solid rgba(86,183,223,0.3)',
+          backdropFilter: 'blur(8px)',
+          color: 'white',
+          fontSize: 20,
+          fontWeight: 900,
+          cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(86,183,223,0.25)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'rgba(11,29,38,0.9)'}
+      >−</button>
+    </div>
+  );
+}
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -436,22 +512,22 @@ const TrekkingCard = ({ item, index, currentIndex, total, onClickCenter, onIniti
   if (diff < -total / 2) diff += total;
 
   const isCenter = diff === 0;
-  let styles = "translate-x-0 opacity-0 scale-50 pointer-events-none"; 
+  let styles = "translate-x-0 opacity-0 scale-50 pointer-events-none";
 
   if (isCenter) {
     styles = "translate-x-0 translate-y-20 opacity-100 scale-110 z-40 shadow-[0_40px_80px_rgba(0,0,0,0.8)] cursor-pointer";
-  } else if (diff === -1) { 
+  } else if (diff === -1) {
     styles = "-translate-x-[85%] translate-y-0 opacity-90 scale-100 z-30 cursor-pointer";
-  } else if (diff === 1) { 
+  } else if (diff === 1) {
     styles = "translate-x-[85%] translate-y-0 opacity-90 scale-100 z-30 cursor-pointer";
-  } else if (diff === -2) { 
+  } else if (diff === -2) {
     styles = "-translate-x-[170%] -translate-y-16 opacity-70 scale-90 z-20 cursor-pointer";
-  } else if (diff === 2) { 
+  } else if (diff === 2) {
     styles = "translate-x-[170%] -translate-y-16 opacity-70 scale-90 z-20 cursor-pointer";
   }
 
   return (
-    <div 
+    <div
       onClick={() => isCenter ? onInitiate(item) : onClickCenter(index)}
       className={`absolute transition-all duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] w-[300px] h-[440px] rounded-[3rem] overflow-hidden border-2 border-[#56B7DF]/40 ring-1 ring-white/10 ${styles}`}
     >
@@ -768,6 +844,78 @@ export default function LandingPage() {
   const [flippedIndex, setFlippedIndex] = useState(null);
   const handleFlip = (index) => setFlippedIndex(flippedIndex === index ? null : index);
 
+  // ── Map markers: watchlist trips if logged in + have trips, else season destinations ──
+  const [mapMarkers, setMapMarkers] = useState([]);
+  const [mapLabel, setMapLabel]     = useState('');
+
+ useEffect(() => {
+  const loadMapMarkers = async () => {
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('userId');
+
+    if (token && userId) {
+      try {
+        const res = await fetch(`http://localhost:5000/api/trips/${userId}`);
+        const data = await res.json();
+        const trips = Array.isArray(data) ? data : (data.trips || []);
+
+        if (trips.length > 0) {
+          // Geocode each destination using Nominatim (free, no API key)
+          const markerPromises = trips.map(async (t) => {
+            // Use hardcoded coords if available, otherwise geocode
+            if (destinationCoords[t.destination]) {
+              return {
+                position: destinationCoords[t.destination],
+                label: t.destination,
+                sub: t.budget ? `Budget: ${t.budget}` : 'Saved trip',
+              };
+            }
+            try {
+              const geoRes = await fetch(
+                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(t.destination)}&format=json&limit=1`,
+                { headers: { 'Accept-Language': 'en' } }
+              );
+              const geoData = await geoRes.json();
+              if (geoData && geoData.length > 0) {
+                return {
+                  position: [parseFloat(geoData[0].lat), parseFloat(geoData[0].lon)],
+                  label: t.destination,
+                  sub: t.budget ? `Budget: ${t.budget}` : 'Saved trip',
+                };
+              }
+            } catch (e) {
+              console.error(`Failed to geocode: ${t.destination}`, e);
+            }
+            return null; // Skip if geocoding fails
+          });
+
+          const resolved = await Promise.all(markerPromises);
+          const markers = resolved.filter(Boolean); // Remove nulls
+
+          if (markers.length > 0) {
+            setMapMarkers(markers);
+            setMapLabel('📌 Your Saved Trips');
+            return;
+          }
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    // Not logged in OR empty watchlist → season picks
+    const markers = destinations
+      .filter(d => destinationCoords[d.title])
+      .map(d => ({
+        position: destinationCoords[d.title],
+        label: d.title,
+        sub: `${d.location} · ${d.vibe}`,
+      }));
+    setMapMarkers(markers);
+    setMapLabel(`${seasonLabels[currentSeason]} — Top Picks`);
+  };
+
+  loadMapMarkers();
+}, [isAuthenticated]);
+
   const [activeModal, setActiveModal] = useState(null);
   const openModal = (key) => setActiveModal(key);
   const closeModal = () => setActiveModal(null);
@@ -781,15 +929,15 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen w-full bg-[#0B1D26] text-white font-sans overflow-x-hidden scroll-smooth">
-      
+     
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-[100] flex justify-center pt-8 px-10 pointer-events-none">
         <div className="flex items-center justify-center bg-[#0B1D26]/40 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-2.5 pointer-events-auto shadow-2xl">
           <div className="flex items-center gap-1">
-            {['Home', 'top picks', 'budget cards', 'live intel', 'About us'].map((item) => (
+            {['Home', 'Top Picks', 'Budget cards', 'Live intel', 'About Us'].map((item) => (
               <button key={item}
                 onClick={() => {
-                  const idMap = { 'Home': 'hero', 'top picks': 'popular-destinations', 'budget cards': 'budget', 'live intel': 'map', 'About us': 'footer' };
+                  const idMap = { 'Home': 'hero', 'Top Picks': 'popular-destinations', 'Budget cards': 'budget', 'Live intel': 'map', 'About Us': 'footer' };
                   document.getElementById(idMap[item])?.scrollIntoView({ behavior: 'smooth' });
                 }}
                 className="px-4 py-1 text-[14px] font-black uppercase tracking-[0.15em] text-white hover:text-[#56B7DF] transition-all cursor-pointer"
@@ -927,7 +1075,7 @@ export default function LandingPage() {
           </div>
           <div className="relative flex items-center justify-center h-[500px]" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
             {destinations.map((item, index) => (
-              <TrekkingCard 
+              <TrekkingCard
                 key={index} item={item} index={index} currentIndex={currentIndex}
                 total={destinations.length} onClickCenter={setCurrentIndex}
                 onInitiate={handleCardClick}
@@ -951,9 +1099,9 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
-              { tier: "Backpacker", price: "800",   score: "98%", budgetValue: "affordable", features: ["Hostels", "Local Transport", "Street Food"] },
-              { tier: "Explorer",   price: "2,400", score: "94%", budgetValue: "mid-range",  features: ["Boutique Hotels", "Private Transfers", "Guided Tours"] },
-              { tier: "Elite",      price: "5,000+",score: "89%", budgetValue: "luxury",     features: ["Luxury Resorts", "Helicopters", "Personal Concierge"] }
+              { tier: "Backpacker", price: "800",   score: "98%", budgetValue: "Affordable", features: ["Hostels", "Local Transport", "Street Food"] },
+              { tier: "Explorer",   price: "2,400", score: "94%", budgetValue: "Mid-range",  features: ["Boutique Hotels", "Private Transfers", "Guided Tours"] },
+              { tier: "Elite",      price: "5,000+",score: "89%", budgetValue: "Luxury",     features: ["Luxury Resorts", "Helicopters", "Personal Concierge"] }
             ].map((plan, i) => (
               <div key={i} className="relative h-[420px] perspective">
                 <div className={`relative w-full h-full transition-transform duration-700 preserve-3d ${flippedIndex === i ? "rotate-y-180" : ""}`}>
@@ -962,11 +1110,11 @@ export default function LandingPage() {
                       <div>
                         <div className="mb-6 inline-flex px-3 py-1 rounded-full border border-[#56B7DF]/30 bg-[#56B7DF]/10 items-center gap-2">
                           <div className="w-1.5 h-1.5 rounded-full bg-[#56B7DF] animate-pulse" />
-                          <span className="text-[9px] font-black text-[#56B7DF] uppercase tracking-widest">AI Match: {plan.score}</span>
+                          <span className="text-[9px] font-black text-[#56B7DF] uppercase tracking-widest">Tier: {plan.tier}</span>
                         </div>
                         <div className="mb-6 text-white">
-                          <span className="text-6xl font-black tracking-tighter">${plan.price}</span>
-                          <span className="block text-[11px] font-bold text-white uppercase mt-2 tracking-widest opacity-90">Estimated Total</span>
+                          <span className="text-5xl font-black tracking-tighter">{plan.budgetValue}</span>
+                          <span className="block text-[11px] font-bold text-white uppercase mt-2 tracking-widest opacity-90"></span>
                         </div>
                         <div className="space-y-4 mb-10">
                           {plan.features.map((f, idx) => (
@@ -1107,18 +1255,22 @@ export default function LandingPage() {
             </div>
           </section>
           <div className="relative w-full aspect-[21/9] rounded-[4rem] overflow-hidden border border-white/5 shadow-2xl">
+            {/* Map source label */}
+            <div className="absolute top-4 left-4 z-[999] px-3 py-1.5 rounded-full flex items-center gap-2"
+              style={{ background: 'rgba(11,29,38,0.85)', border: '1px solid rgba(86,183,223,0.25)', backdropFilter: 'blur(8px)' }}>
+              <div className="w-1.5 h-1.5 rounded-full bg-[#56B7DF] animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/70">{mapLabel}</span>
+            </div>
             <MapContainer center={[20, 0]} zoom={2} scrollWheelZoom={false} zoomControl={false} className="w-full h-full z-10">
               <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              <Marker position={[40.7128, -74.006]}><Popup>New York</Popup></Marker>
-              <Marker position={[48.8566, 2.3522]}><Popup>Paris</Popup></Marker>
-              <Marker position={[51.5072, -0.1276]}><Popup>London</Popup></Marker>
-              <Marker position={[25.2048, 55.2708]}><Popup>Dubai</Popup></Marker>
-              <Marker position={[19.076, 72.8777]}><Popup>Mumbai</Popup></Marker>
-              <Marker position={[35.6762, 139.6503]}><Popup>Tokyo</Popup></Marker>
-              <Marker position={[-33.8688, 151.2093]}><Popup>Sydney</Popup></Marker>
-              <Marker position={[-22.9068, -43.1729]}><Popup>Rio de Janeiro</Popup></Marker>
-              <Marker position={[30.0444, 31.2357]}><Popup>Cairo</Popup></Marker>
-              <Marker position={[1.3521, 103.8198]}><Popup>Singapore</Popup></Marker>
+              {mapMarkers.map((m, i) => (
+                <Marker key={i} position={m.position}>
+                  <Popup>
+                    <strong>{m.label}</strong><br />{m.sub}
+                  </Popup>
+                </Marker>
+              ))}
+              <ZoomControls />
             </MapContainer>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Compass } from 'lucide-react';
+import { Mountain } from 'lucide-react'; // ✅ Change 1: Mountain instead of Compass
 
 const API_BASE_URL = 'http://localhost:5000/api/auth';
 
@@ -9,6 +9,9 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const [toggled, setToggled] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // ✅ Change 2 & 3: separate show/hide state for register password
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
 
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [registerData, setRegisterData] = useState({ name: '', email: '', password: '' });
@@ -66,8 +69,9 @@ export default function AuthPage() {
 
       {/* ── TripGenie Brand ─────────────────────────────────────── */}
       <div style={styles.brand}>
+        {/* ✅ Change 1: Mountain icon */}
         <div style={styles.brandIcon}>
-          <Compass style={{ width: 40, height: 40, color: '#00d4ff' }} />
+          <Mountain style={{ width: 40, height: 40, color: '#00d4ff' }} />
         </div>
         <h1 style={styles.brandTitle}>
           TRIP<span style={{ color: '#00d4ff' }}>GENIE</span>
@@ -121,7 +125,7 @@ export default function AuthPage() {
             </div>
           )}
 
-          {/* Username/Email */}
+          {/* Email */}
           <div style={{
             ...styles.fieldWrapper,
             transform: toggled ? 'translateX(-120%)' : 'translateX(0%)',
@@ -147,7 +151,7 @@ export default function AuthPage() {
             <i className="fa-solid fa-envelope" style={styles.fieldIcon} />
           </div>
 
-          {/* Password */}
+          {/* Password — ✅ Change 2: eye icon + toggle */}
           <div style={{
             ...styles.fieldWrapper,
             transform: toggled ? 'translateX(-120%)' : 'translateX(0%)',
@@ -170,8 +174,12 @@ export default function AuthPage() {
               color: loginData.password ? '#00d4ff' : '#fff',
               fontSize: loginData.password ? '12px' : '16px',
             }}>Password</label>
-            <i className="fa-solid fa-lock" style={styles.fieldIcon}
-              onClick={() => setShowPassword(!showPassword)} />
+            {/* ✅ Eye icon replaces lock icon, toggles show/hide */}
+            <i
+              className={showPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'}
+              style={{ ...styles.fieldIcon, color: loginData.password ? '#00d4ff' : '#fff' }}
+              onClick={() => setShowPassword(p => !p)}
+            />
           </div>
 
           {/* Submit */}
@@ -184,7 +192,7 @@ export default function AuthPage() {
             <SubmitButton label="Login" onClick={handleLogin} />
           </div>
 
-          {/* Switch link */}
+          {/* Switch link — ✅ Change 4: white text */}
           <div style={{
             ...styles.switchLink,
             transform: toggled ? 'translateX(-120%)' : 'translateX(0%)',
@@ -192,7 +200,7 @@ export default function AuthPage() {
             transitionDelay: toggled ? '0.4s' : '2.5s',
             transition: 'transform 0.7s ease, opacity 0.7s ease',
           }}>
-            <p style={{ fontSize: 14, textAlign: 'center' }}>
+            <p style={{ fontSize: 14, textAlign: 'center', color: '#fff' }}>
               Don't have an account?{' '}
               <a href="#" onClick={e => { e.preventDefault(); setToggled(true); }}
                 style={styles.switchAnchor}>Sign Up</a>
@@ -300,7 +308,7 @@ export default function AuthPage() {
             <i className="fa-solid fa-envelope" style={styles.fieldIcon} />
           </div>
 
-          {/* Password */}
+          {/* Password — ✅ Change 3: eye icon + toggle for register */}
           <div style={{
             ...styles.fieldWrapper,
             transform: toggled ? 'translateX(0%)' : 'translateX(120%)',
@@ -309,7 +317,7 @@ export default function AuthPage() {
             transitionDelay: toggled ? '1.9s' : '0.3s',
           }}>
             <input
-              type="password"
+              type={showRegisterPassword ? 'text' : 'password'}
               required
               value={registerData.password}
               onChange={e => setRegisterData({ ...registerData, password: e.target.value })}
@@ -324,7 +332,12 @@ export default function AuthPage() {
               color: registerData.password ? '#00d4ff' : '#fff',
               fontSize: registerData.password ? '12px' : '16px',
             }}>Password</label>
-            <i className="fa-solid fa-lock" style={styles.fieldIcon} />
+            {/* ✅ Eye icon replaces lock icon, toggles show/hide */}
+            <i
+              className={showRegisterPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'}
+              style={{ ...styles.fieldIcon, color: registerData.password ? '#00d4ff' : '#fff' }}
+              onClick={() => setShowRegisterPassword(p => !p)}
+            />
           </div>
 
           {/* Submit */}
@@ -338,7 +351,7 @@ export default function AuthPage() {
             <SubmitButton label="Register" onClick={handleRegister} />
           </div>
 
-          {/* Switch link */}
+          {/* Switch link — ✅ Change 4: white text */}
           <div style={{
             ...styles.switchLink,
             transform: toggled ? 'translateX(0%)' : 'translateX(120%)',
@@ -347,7 +360,7 @@ export default function AuthPage() {
             transitionDelay: toggled ? '2.1s' : '0.5s',
             transition: 'transform 0.7s ease, opacity 0.7s ease, filter 0.7s ease',
           }}>
-            <p style={{ fontSize: 14, textAlign: 'center' }}>
+            <p style={{ fontSize: 14, textAlign: 'center', color: '#fff' }}>
               Already have an account?{' '}
               <a href="#" onClick={e => { e.preventDefault(); setToggled(false); }}
                 style={styles.switchAnchor}>Sign In</a>

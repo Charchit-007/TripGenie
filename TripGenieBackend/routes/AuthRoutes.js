@@ -110,4 +110,69 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// ==========================================================
+// @route   PUT /api/auth/update-profile
+// @desc    Update user name and email
+// @access  Private
+// ==========================================================
+router.put('/update-profile', async (req, res) => {
+  const { userId, name, email } = req.body;
+  try {
+    if (!userId || !name || !email) {
+      return res.status(400).json({ msg: 'All fields are required.' });
+    }
+
+    // Check if email is taken by another user
+    const existing = await User.findOne({ email });
+    if (existing && existing._id.toString() !== userId) {
+      return res.status(400).json({ msg: 'Email already in use by another account.' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { name, email },
+      { new: true }
+    );
+    if (!user) return res.status(404).json({ msg: 'User not found.' });
+
+    res.json({ msg: 'Profile updated successfully.', name: user.name, email: user.email });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+// ==========================================================
+// @route   PUT /api/auth/update-password
+// @desc    Change password after verifying current one
+// @access  Private
+// ==========================================================
+router.put('/update-password', async (req, res) => {
+  const { userId, currentPassword, newPassword } = req.body;
+  try {
+    if (!userId || !currentPassword || !newPassword) {
+      return res.status(400).json({ msg: 'All fields are required.' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ msg: 'User not found.' });
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ msg: 'Current password is incorrect.' });
+    }
+
+    // Hash and save new password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    res.json({ msg: 'Password updated successfully.' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
 module.exports = router;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
 const BookingsPage = () => {
   const navigate = useNavigate();
@@ -50,6 +51,17 @@ const BookingsPage = () => {
         
         <div className="mb-10 border-b border-gray-800 pb-6 flex justify-between items-end">
           <div>
+            
+                    {/* Back to Home */}
+                    <button
+                      onClick={() => navigate('/home')}
+                      className="flex items-center gap-2 text-sm font-semibold mb-6 transition-all group"
+                      style={{ color: '#56B7DF' }}
+                    >
+                      <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+                      Back to Home
+                    </button>
+                    
             <h1 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#56B7DF] to-[#38bdf8]">
               My Bookings
             </h1>

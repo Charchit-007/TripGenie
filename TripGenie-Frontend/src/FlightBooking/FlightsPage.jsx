@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
 const FlightsPage = () => {
   const location = useLocation();
@@ -76,6 +77,17 @@ const FlightsPage = () => {
   return (
     <div className="min-h-screen bg-[#0B1D26] text-white p-6 md:p-12">
       <div className="max-w-6xl mx-auto">
+        
+                {/* Back to Home */}
+                <button
+                  onClick={() => navigate('/home')}
+                  className="flex items-center gap-2 text-sm font-semibold mb-6 transition-all group"
+                  style={{ color: '#56B7DF' }}
+                >
+                  <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+                  Back to Home
+                </button>
+                
         
         {/* Header */}
         <div className="mb-10">

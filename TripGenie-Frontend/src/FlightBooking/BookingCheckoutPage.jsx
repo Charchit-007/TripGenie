@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
 const BookingCheckoutPage = () => {
   const location = useLocation();
@@ -8,7 +9,6 @@ const BookingCheckoutPage = () => {
   const flight = location.state?.flight;
   const trip = location.state?.trip;
 
-  // We need the user info for the booking (assuming it's stored in localStorage)
   const userId = localStorage.getItem('userId');
   const userEmailDefault = localStorage.getItem('userEmail') || '';
 
@@ -18,7 +18,6 @@ const BookingCheckoutPage = () => {
   const [processingStep, setProcessingStep] = useState('');
   const [error, setError] = useState('');
 
-  // Initialize passenger form based on trip guest count
   useEffect(() => {
     if (trip && trip.guests) {
       const initialPassengers = Array.from({ length: trip.guests }, () => ({
@@ -46,7 +45,6 @@ const BookingCheckoutPage = () => {
 
       let currentTripId = trip._id;
 
-      // STEP 0: Auto-save the trip if it came straight from the Chat UI and isn't saved yet
       if (!currentTripId) {
         setProcessingStep('Saving trip to your watchlist...');
         const saveTripRes = await fetch('http://localhost:5000/api/trips', {
@@ -66,17 +64,16 @@ const BookingCheckoutPage = () => {
 
         if (!saveTripRes.ok) throw new Error('Failed to secure trip data in the database.');
         const savedTripData = await saveTripRes.json();
-        currentTripId = savedTripData.trip._id; // Grab the newly created MongoDB ID!
+        currentTripId = savedTripData.trip._id;
       }
 
-      // Step 1: Create the Booking in Express (Triggers Email)
       setProcessingStep('Securing your ticket...');
       const bookingRes = await fetch('http://localhost:5000/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
-          tripId: currentTripId, // Use the guaranteed ID
+          tripId: currentTripId,
           flightDetails: flight,
           passengers,
           totalPaid: flight.total_price,
@@ -91,14 +88,13 @@ const BookingCheckoutPage = () => {
       }
       const bookingData = await bookingRes.json();
 
-      // Step 2: Call FastAPI to Sync Itinerary with Flight Times
       setProcessingStep('Agent is synchronizing your itinerary...');
       const syncRes = await fetch('http://localhost:8000/sync-itinerary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
-          tripId: currentTripId, // Use the guaranteed ID
+          tripId: currentTripId,
           destination: trip.destination,
           startDate: trip.startDate,
           endDate: trip.endDate,
@@ -113,7 +109,6 @@ const BookingCheckoutPage = () => {
       if (!syncRes.ok) throw new Error('Failed to sync itinerary.');
       const syncData = await syncRes.json();
 
-      // Step 3: Update the Trip with the Flight and Synced Itinerary
       setProcessingStep('Finalizing your Watchlist...');
       const updateRes = await fetch(`http://localhost:5000/api/trips/${currentTripId}/flight`, {
         method: 'PATCH',
@@ -126,7 +121,6 @@ const BookingCheckoutPage = () => {
 
       if (!updateRes.ok) throw new Error('Failed to update trip with new itinerary.');
 
-      // Step 4: Redirect to the Ticket Page
       navigate(`/ticket/${bookingData.booking._id}`, { state: { success: true } });
 
     } catch (err) {
@@ -148,6 +142,16 @@ const BookingCheckoutPage = () => {
   return (
     <div className="min-h-screen bg-[#0B1D26] text-white p-6 md:p-12 font-sans">
       <div className="max-w-4xl mx-auto">
+
+        {/* Back to Home */}
+        <button
+          onClick={() => navigate('/home')}
+          className="flex items-center gap-2 text-sm font-semibold mb-6 transition-all group"
+          style={{ color: '#56B7DF' }}
+        >
+          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+          Back to Home
+        </button>
         
         <h1 className="text-3xl font-black mb-8 text-[#56B7DF]">Complete Your Booking</h1>
 

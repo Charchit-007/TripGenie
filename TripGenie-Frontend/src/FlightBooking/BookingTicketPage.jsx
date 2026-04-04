@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
 const BookingTicketPage = () => {
   const { bookingId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Check if we just landed here from a successful checkout
   const justBooked = location.state?.success;
 
   const [ticket, setTicket] = useState(null);
@@ -60,7 +60,19 @@ const BookingTicketPage = () => {
 
   return (
     <div className="min-h-screen bg-[#0B1D26] text-white p-6 md:p-12 font-sans flex flex-col items-center">
-      
+
+      {/* Back to Home */}
+      <div className="w-full max-w-3xl mb-4">
+        <button
+          onClick={() => navigate('/home')}
+          className="flex items-center gap-2 text-sm font-semibold transition-all group"
+          style={{ color: '#56B7DF' }}
+        >
+          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+          Back to Home
+        </button>
+      </div>
+
       {justBooked && (
         <div className="mb-8 text-center animate-fade-in-down">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#10b981]/20 text-[#10b981] mb-4">
@@ -151,7 +163,6 @@ const BookingTicketPage = () => {
           
           {/* Perforation Line Effect */}
           <div className="absolute bottom-0 left-0 w-full border-b-2 border-dashed border-gray-300"></div>
-          {/* Half circles for the perforation visual */}
           <div className="absolute -bottom-4 -left-4 w-8 h-8 bg-[#0B1D26] rounded-full"></div>
           <div className="absolute -bottom-4 -right-4 w-8 h-8 bg-[#0B1D26] rounded-full"></div>
         </div>
@@ -164,7 +175,6 @@ const BookingTicketPage = () => {
             <p className="text-sm text-gray-500 mt-1">Total Paid: ₹{ticket.totalPaid} {ticket.currency}</p>
           </div>
           
-          {/* Mock Barcode generated via CSS linear-gradient */}
           <div className="h-16 w-full md:w-64" style={{ 
             backgroundImage: 'repeating-linear-gradient(to right, #0f2733, #0f2733 2px, transparent 2px, transparent 4px, #0f2733 4px, #0f2733 5px, transparent 5px, transparent 8px, #0f2733 8px, #0f2733 12px, transparent 12px, transparent 14px)'
           }}></div>

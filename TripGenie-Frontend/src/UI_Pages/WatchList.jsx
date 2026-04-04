@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   MapPin, Calendar, Users, DollarSign, Sparkles, Trash2, Loader2, 
   Globe2, ArrowLeft, Heart, Clock, AlertCircle, Compass,
-  RefreshCw, ChevronDown, ChevronUp, History, Plane
+  RefreshCw, ChevronDown, ChevronUp, History, Plane,Mountain
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -163,7 +163,7 @@ export default function WatchlistPage() {
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <div className="relative">
-                  <Compass className="w-10 h-10" style={{ color: '#56B7DF' }} />
+                  <Mountain className="w-10 h-10" style={{ color: '#56B7DF' }} />
                   <Sparkles className="w-4 h-4 absolute -top-1 -right-1 animate-pulse" style={{ color: '#38bdf8' }} />
                 </div>
                 <h1
