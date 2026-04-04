@@ -116,7 +116,12 @@ const BookingsPage = () => {
                   {/* Middle: Route Info */}
                   <div className="p-6 flex-1 flex flex-col justify-center">
                     <div className="flex justify-between items-center mb-4">
-                      <span className="font-bold text-gray-300">{booking.flightDetails.airline_name}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="font-bold text-gray-300">{booking.flightDetails.airline_name}</span>
+                        <span className="text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wider bg-[#56B7DF]/20 text-[#56B7DF]">
+                          🔄 Round Trip
+                        </span>
+                      </div>
                       <span className="text-sm text-gray-500">PNR: <strong className="text-white tracking-widest">{booking.bookingReference}</strong></span>
                     </div>
 
