@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import NetworkErrorPage from '../components/NetworkErrorPage';
 
 const FlightsPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // The trip object is passed via React Router state when navigating from Watchlist/ChatUI
   const trip = location.state?.trip; 
 
-  // Use origin instead of a generic search query
   const [origin, setOrigin] = useState('');
   const [loading, setLoading] = useState(false);
   const [flightData, setFlightData] = useState(null);
   const [error, setError] = useState('');
+  const [networkError, setNetworkError] = useState(false);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -25,9 +25,9 @@ const FlightsPage = () => {
 
     setLoading(true);
     setError('');
+    setNetworkError(false);
     setFlightData(null);
 
-    // Build the strict query using the origin and the trip context
     const startDate = new Date(trip.startDate).toISOString().split('T')[0];
     const strictQuery = `Flights from ${origin} to ${trip.destination} for ${trip.guests} people on ${startDate}`;
 
@@ -47,13 +47,21 @@ const FlightsPage = () => {
         }),
       });
 
+      if (!response.ok) {
+        setNetworkError(true);
+        return;
+      }
+
       const data = await response.json();
-      console.log('API response:', JSON.stringify(data, null, 2)); // 👈 add this
-      if (data.error) throw new Error(data.error);
+      console.log('API response:', JSON.stringify(data, null, 2));
+      if (data.error) {
+        setNetworkError(true);
+        return;
+      }
       
       setFlightData(data);
     } catch (err) {
-      setError(err.message || 'Failed to fetch flights. Please try again.');
+      setNetworkError(true);
     } finally {
       setLoading(false);
     }
@@ -62,6 +70,21 @@ const FlightsPage = () => {
   const openBookingModal = (flight) => {
     navigate('/booking-checkout', { state: { flight, trip } });
   };
+
+  if (networkError) {
+    return (
+      <NetworkErrorPage
+        onRetry={() => {
+          setNetworkError(false);
+          handleSearch({ preventDefault: () => {} });
+        }}
+        onBack={() => {
+          setNetworkError(false);
+          navigate('/home');
+        }}
+      />
+    );
+  }
 
   if (!trip) {
     return (
@@ -78,16 +101,15 @@ const FlightsPage = () => {
     <div className="min-h-screen bg-[#0B1D26] text-white p-6 md:p-12">
       <div className="max-w-6xl mx-auto">
         
-                {/* Back to Home */}
-                <button
-                  onClick={() => navigate('/home')}
-                  className="flex items-center gap-2 text-sm font-semibold mb-6 transition-all group"
-                  style={{ color: '#56B7DF' }}
-                >
-                  <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-                  Back to Home
-                </button>
-                
+        {/* Back to Home */}
+        <button
+          onClick={() => navigate('/home')}
+          className="flex items-center gap-2 text-sm font-semibold mb-6 transition-all group"
+          style={{ color: '#56B7DF' }}
+        >
+          <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+          Back to Home
+        </button>
         
         {/* Header */}
         <div className="mb-10">
@@ -201,7 +223,7 @@ const FlightsPage = () => {
               </div>
             )}
 
-            {/* Other Options Section (With Optional Chaining ?.) */}
+            {/* Other Options */}
             <div>
               <h3 className="text-xl font-bold mb-6 text-gray-400">Other Available Flights</h3>
               <div className="grid gap-4">

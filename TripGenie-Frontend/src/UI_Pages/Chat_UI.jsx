@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Calendar, Users, DollarSign, Sparkles, Loader2, Globe, Bookmark, BookmarkCheck, ArrowLeft, ArrowRight, RotateCcw,ChevronDown,Check, Palmtree, Plane } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import NetworkErrorPage from '../components/NetworkErrorPage';
 
 const AI_BASE_URL = "http://localhost:8000";
 const USER_BASE_URL = "http://localhost:5000";
@@ -22,14 +23,9 @@ export default function TripInputForm() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ Check if destination/budget was passed from a card click or budget card
   const prefilledDestination = location.state?.destination || '';
   const prefilledBudget      = location.state?.budget      || 'mid-range';
 
-  // ✅ THE FIX: 
-  // - If coming from a card → ignore sessionStorage, use prefilled destination
-  // - If coming from "Try TripGenie" button → clear sessionStorage, start fresh
-  // - Never load old sessionStorage when arriving fresh
   useEffect(() => {
     if (!prefilledDestination && !location.state?.budget) {
       sessionStorage.removeItem('tripGenieState');
@@ -48,6 +44,7 @@ export default function TripInputForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
+  const [networkError, setNetworkError] = useState(false);
   const [isSavingToWatchlist, setIsSavingToWatchlist] = useState(false);
   const [savedToWatchlist, setSavedToWatchlist] = useState(false);
   const [currentTripData, setCurrentTripData] = useState(null);
@@ -81,6 +78,7 @@ export default function TripInputForm() {
     });
     setResponse(null);
     setError(null);
+    setNetworkError(false);
     setSavedToWatchlist(false);
     setCurrentTripData(null);
     sessionStorage.removeItem('tripGenieState');
@@ -96,6 +94,7 @@ export default function TripInputForm() {
 
     setIsLoading(true);
     setError(null);
+    setNetworkError(false);
     setSavedToWatchlist(false);
 
     const question = `Plan a trip to ${formData.destination} from ${formData.startDate} to ${formData.endDate} for ${formData.guests} guest${formData.guests > 1 ? 's' : ''} with a ${formData.budget} budget. Trip type: ${formData.tripType}`;
@@ -114,11 +113,11 @@ export default function TripInputForm() {
         setCurrentTripData(tripData);
         setResponse({ answer, startDate: formData.startDate, endDate: formData.endDate });
       } else {
-        const errorText = await res.text();
-        setError(`Bot failed to respond: ${errorText}`);
+        // FastAPI returned an error (Groq failure, tool error, etc.) → show error page
+        setNetworkError(true);
       }
     } catch (err) {
-      setError(`The response failed due to ${err.message}`);
+      setNetworkError(true);
     } finally {
       setIsLoading(false);
     }
@@ -157,7 +156,6 @@ export default function TripInputForm() {
     }
   };
 
-  // Shared field styles
   const fieldStyle = {
     background: 'rgba(86,183,223,0.09)',
     border: '1px solid rgba(86,183,223,0.22)',
@@ -172,6 +170,21 @@ export default function TripInputForm() {
     if (!currentTripData) return;
     navigate('/flights', { state: { trip: currentTripData } });
   };
+
+  if (networkError) {
+    return (
+      <NetworkErrorPage
+        onRetry={() => {
+          setNetworkError(false);
+          handleSubmit({ preventDefault: () => {} });
+        }}
+        onBack={() => {
+          setNetworkError(false);
+          navigate('/home');
+        }}
+      />
+    );
+  }
 
   return (
     <div
@@ -531,7 +544,6 @@ export default function TripInputForm() {
 
               <div className="flex flex-col items-end gap-2 flex-shrink-0">
 
-                {/* New Search */}
                 <button
                   type="button"
                   onClick={handleNewPrompt}
@@ -590,7 +602,6 @@ export default function TripInputForm() {
                   )
                 )}
 
-                {/* Book Flights Button */}
                 <button
                   type="button"
                   onClick={handleBookFlights}

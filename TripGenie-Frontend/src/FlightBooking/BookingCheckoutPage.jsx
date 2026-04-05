@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import NetworkErrorPage from '../components/NetworkErrorPage';
 
 const BookingCheckoutPage = () => {
   const location = useLocation();
@@ -17,6 +18,7 @@ const BookingCheckoutPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState('');
   const [error, setError] = useState('');
+  const [networkError, setNetworkError] = useState(false);
 
   useEffect(() => {
     if (trip && trip.guests) {
@@ -39,6 +41,7 @@ const BookingCheckoutPage = () => {
     e.preventDefault();
     setIsProcessing(true);
     setError('');
+    setNetworkError(false);
 
     try {
       if (!userId) throw new Error('You must be logged in to book a flight.');
@@ -89,24 +92,32 @@ const BookingCheckoutPage = () => {
       const bookingData = await bookingRes.json();
 
       setProcessingStep('Agent is synchronizing your itinerary...');
-      const syncRes = await fetch('http://localhost:8000/sync-itinerary', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          tripId: currentTripId,
-          destination: trip.destination,
-          startDate: trip.startDate,
-          endDate: trip.endDate,
-          guests: trip.guests,
-          budget: trip.budget,
-          tripType: trip.tripType,
-          aiResponse: trip.aiResponse,
-          flight: flight
-        })
-      });
+      let syncRes;
+      try {
+        syncRes = await fetch('http://localhost:8000/sync-itinerary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            tripId: currentTripId,
+            destination: trip.destination,
+            startDate: trip.startDate,
+            endDate: trip.endDate,
+            guests: trip.guests,
+            budget: trip.budget,
+            tripType: trip.tripType,
+            aiResponse: trip.aiResponse,
+            flight: flight
+          })
+        });
+        if (!syncRes.ok) throw new Error('sync_failed');
+      } catch {
+        // AI sync failed — show network error page
+        setIsProcessing(false);
+        setNetworkError(true);
+        return;
+      }
 
-      if (!syncRes.ok) throw new Error('Failed to sync itinerary.');
       const syncData = await syncRes.json();
 
       setProcessingStep('Finalizing your Watchlist...');
@@ -128,6 +139,21 @@ const BookingCheckoutPage = () => {
       setIsProcessing(false);
     }
   };
+
+  if (networkError) {
+    return (
+      <NetworkErrorPage
+        onRetry={() => {
+          setNetworkError(false);
+          handleCheckout({ preventDefault: () => {} });
+        }}
+        onBack={() => {
+          setNetworkError(false);
+          navigate('/home');
+        }}
+      />
+    );
+  }
 
   if (!flight || !trip) {
     return (
@@ -152,20 +178,20 @@ const BookingCheckoutPage = () => {
           <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
           Back to Home
         </button>
-        
+
         <h1 className="text-3xl font-black mb-8 text-[#56B7DF]">Complete Your Booking</h1>
 
         <div className="grid md:grid-cols-3 gap-8">
-          
+
           {/* Left Column: Form */}
           <div className="md:col-span-2 space-y-8">
-            
+
             {/* Contact Details */}
             <div className="bg-[#0f2733] p-6 rounded-xl border border-gray-800">
               <h2 className="text-xl font-bold mb-4 border-b border-gray-700 pb-2">Contact Information</h2>
               <div>
                 <label className="block text-sm text-gray-400 mb-1">Email (For E-Ticket)</label>
-                <input 
+                <input
                   type="email" required
                   className="w-full bg-[#0B1D26] border border-gray-700 rounded p-3 text-white focus:border-[#56B7DF] outline-none"
                   value={email}
@@ -177,14 +203,14 @@ const BookingCheckoutPage = () => {
             {/* Passenger Details */}
             <form id="checkout-form" onSubmit={handleCheckout} className="bg-[#0f2733] p-6 rounded-xl border border-gray-800 space-y-6">
               <h2 className="text-xl font-bold mb-4 border-b border-gray-700 pb-2">Passenger Details</h2>
-              
+
               {passengers.map((p, idx) => (
                 <div key={idx} className="space-y-4">
                   <h3 className="text-[#56B7DF] font-semibold">Passenger {idx + 1}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm text-gray-400 mb-1">First Name</label>
-                      <input 
+                      <input
                         type="text" required
                         className="w-full bg-[#0B1D26] border border-gray-700 rounded p-3 text-white focus:border-[#56B7DF] outline-none"
                         value={p.firstName}
@@ -193,7 +219,7 @@ const BookingCheckoutPage = () => {
                     </div>
                     <div>
                       <label className="block text-sm text-gray-400 mb-1">Last Name</label>
-                      <input 
+                      <input
                         type="text" required
                         className="w-full bg-[#0B1D26] border border-gray-700 rounded p-3 text-white focus:border-[#56B7DF] outline-none"
                         value={p.lastName}
@@ -203,7 +229,7 @@ const BookingCheckoutPage = () => {
                   </div>
                   <div>
                     <label className="block text-sm text-gray-400 mb-1">Passport Number (Optional)</label>
-                    <input 
+                    <input
                       type="text"
                       className="w-full bg-[#0B1D26] border border-gray-700 rounded p-3 text-white focus:border-[#56B7DF] outline-none"
                       value={p.passportNumber}
@@ -220,7 +246,7 @@ const BookingCheckoutPage = () => {
           <div className="md:col-span-1">
             <div className="bg-[#0f2733] p-6 rounded-xl border border-[#56B7DF]/30 sticky top-6">
               <h2 className="text-xl font-bold mb-4 border-b border-gray-700 pb-2">Flight Summary</h2>
-              
+
               <div className="mb-6 space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Airline</span>
@@ -234,7 +260,7 @@ const BookingCheckoutPage = () => {
                   <span className="text-gray-400">Cabin</span>
                   <span className="font-semibold">{flight.cabin}</span>
                 </div>
-                
+
                 <div className="mt-4 p-4 bg-[#0B1D26] rounded-lg border border-gray-800">
                   <div className="flex justify-between mb-2">
                     <span className="text-2xl font-black">{outbound.departure.time}</span>
@@ -258,7 +284,7 @@ const BookingCheckoutPage = () => {
 
               {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
 
-              <button 
+              <button
                 form="checkout-form"
                 type="submit"
                 disabled={isProcessing}
