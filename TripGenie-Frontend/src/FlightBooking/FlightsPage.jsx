@@ -59,6 +59,11 @@ const FlightsPage = () => {
         return;
       }
       
+      // Ensure all_options is an array
+      if (!data.all_options) {
+        data.all_options = [];
+      }
+      
       setFlightData(data);
     } catch (err) {
       setNetworkError(true);
@@ -186,10 +191,15 @@ const FlightsPage = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center bg-[#0B1D26] p-6 rounded-xl border border-gray-800">
                   <div className="flex-1 w-full mb-4 md:mb-0">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="font-bold text-lg">{flightData.recommended.airline_name}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="font-bold text-lg">{flightData.recommended.airline_name}</span>
+                        <span className="text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wider bg-[#56B7DF]/20 text-[#56B7DF]">
+                          🔄 Round Trip
+                        </span>
+                      </div>
                       <span className="text-sm text-gray-400">Flight {flightData.recommended.flight_number}</span>
                     </div>
-                    <div className="flex justify-between items-center text-gray-300">
+                    <div className="flex justify-between items-center text-gray-300 mb-4">
                       <div>
                         <div className="text-2xl font-black">{flightData.recommended.outbound.departure.time}</div>
                         <div className="text-sm">{flightData.recommended.outbound.origin_iata}</div>
@@ -205,6 +215,27 @@ const FlightsPage = () => {
                       <div className="text-right">
                         <div className="text-2xl font-black">{flightData.recommended.outbound.arrival.time}</div>
                         <div className="text-sm">{flightData.recommended.outbound.destination_iata}</div>
+                      </div>
+                    </div>
+                    <div className="border-t border-gray-700 pt-4">
+                      <div className="text-xs text-gray-500 mb-3 font-semibold">RETURN FLIGHT</div>
+                      <div className="flex justify-between items-center text-gray-300">
+                        <div>
+                          <div className="text-2xl font-black">{flightData.recommended.inbound.departure.time}</div>
+                          <div className="text-sm">{flightData.recommended.inbound.origin_iata}</div>
+                        </div>
+                        <div className="text-center flex-1 px-4">
+                          <div className="text-xs text-gray-500 mb-1">{flightData.recommended.inbound.duration}</div>
+                          <div className="h-px bg-gray-700 w-full relative">
+                            <span className="absolute left-1/2 -top-2 -translate-x-1/2 text-[10px] bg-[#0B1D26] px-2 text-gray-400">
+                              {flightData.recommended.inbound.stops === 0 ? 'Direct' : `${flightData.recommended.inbound.stops} Stop(s)`}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-black">{flightData.recommended.inbound.arrival.time}</div>
+                          <div className="text-sm">{flightData.recommended.inbound.destination_iata}</div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -226,44 +257,50 @@ const FlightsPage = () => {
             {/* Other Options */}
             <div>
               <h3 className="text-xl font-bold mb-6 text-gray-400">Other Available Flights</h3>
-              <div className="grid gap-4">
-                {(flightData.all_options ?? []).filter(f => f.id !== flightData.recommended?.id).map((flight, idx) => (
-                  <div key={flight.id || idx} className="flex flex-col md:flex-row justify-between items-center bg-[#0f2733] p-5 rounded-xl border border-gray-800 hover:border-gray-600 transition">
-                    <div className="flex-1 w-full mb-4 md:mb-0 flex gap-6 items-center">
-                      <div className="w-12 h-12 bg-[#0B1D26] rounded-full flex items-center justify-center font-bold text-gray-400">
-                        {flight?.airline_code || '✈️'}
+              {flightData.all_options && flightData.all_options.length > 0 ? (
+                <div className="grid gap-4">
+                  {flightData.all_options.filter(f => f.id !== flightData.recommended?.id && f.rank !== flightData.recommended?.rank).map((flight, idx) => (
+                    <div key={flight.id || idx} className="flex flex-col md:flex-row justify-between items-center bg-[#0f2733] p-5 rounded-xl border border-gray-800 hover:border-gray-600 transition">
+                      <div className="flex-1 w-full mb-4 md:mb-0 flex gap-6 items-center">
+                        <div className="w-12 h-12 bg-[#0B1D26] rounded-full flex items-center justify-center font-bold text-gray-400">
+                          {flight?.airline_code || '✈️'}
+                        </div>
+                        <div className="flex-1 flex justify-between items-center">
+                          <div>
+                            <div className="font-bold">{flight?.outbound?.departure?.time || 'TBD'}</div>
+                            <div className="text-sm text-gray-500">{flight?.outbound?.origin_iata || '---'}</div>
+                          </div>
+                          <div className="text-center text-xs text-gray-500 px-4">
+                            <div>{flight?.outbound?.duration || '---'}</div>
+                            <div className="text-[#56B7DF]">{flight?.outbound?.stops === 0 ? 'Direct' : `${flight?.outbound?.stops || 0} Stop(s)`}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold">{flight?.outbound?.arrival?.time || 'TBD'}</div>
+                            <div className="text-sm text-gray-500">{flight?.outbound?.destination_iata || '---'}</div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-1 flex justify-between items-center">
-                        <div>
-                          <div className="font-bold">{flight?.outbound?.departure?.time || 'TBD'}</div>
-                          <div className="text-sm text-gray-500">{flight?.outbound?.origin_iata || '---'}</div>
-                        </div>
-                        <div className="text-center text-xs text-gray-500 px-4">
-                          <div>{flight?.outbound?.duration || '---'}</div>
-                          <div className="text-[#56B7DF]">{flight?.outbound?.stops === 0 ? 'Direct' : `${flight?.outbound?.stops || 0} Stop(s)`}</div>
-                        </div>
+                      <div className="md:ml-6 flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
                         <div className="text-right">
-                          <div className="font-bold">{flight?.outbound?.arrival?.time || 'TBD'}</div>
-                          <div className="text-sm text-gray-500">{flight?.outbound?.destination_iata || '---'}</div>
+                          <div className="text-xl font-bold">₹{flight?.total_price || '0.00'}</div>
+                          <div className="text-xs text-gray-500">{flight?.cabin || 'ECONOMY'}</div>
                         </div>
+                        <button 
+                          onClick={() => openBookingModal(flight)}
+                          disabled={!flight?.outbound}
+                          className="border border-[#56B7DF] text-[#56B7DF] px-6 py-2 rounded-lg font-bold hover:bg-[#56B7DF]/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Select
+                        </button>
                       </div>
                     </div>
-                    <div className="md:ml-6 flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
-                      <div className="text-right">
-                        <div className="text-xl font-bold">₹{flight?.total_price || '0.00'}</div>
-                        <div className="text-xs text-gray-500">{flight?.cabin || 'ECONOMY'}</div>
-                      </div>
-                      <button 
-                        onClick={() => openBookingModal(flight)}
-                        disabled={!flight?.outbound}
-                        className="border border-[#56B7DF] text-[#56B7DF] px-6 py-2 rounded-lg font-bold hover:bg-[#56B7DF]/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Select
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-[#0f2733] p-8 rounded-xl border border-gray-800 text-center">
+                  <p className="text-gray-400">No other flight options available. The recommended flight is the best option for your trip.</p>
+                </div>
+              )}
             </div>
 
           </div>

@@ -257,11 +257,18 @@ const BookingCheckoutPage = () => {
                   <span className="font-semibold">{flight.flight_number}</span>
                 </div>
                 <div className="flex justify-between">
+                  <span className="text-gray-400">Ticket Type</span>
+                  <span className="text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wider bg-[#56B7DF]/20 text-[#56B7DF]">
+                    🔄 Round Trip
+                  </span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-gray-400">Cabin</span>
                   <span className="font-semibold">{flight.cabin}</span>
                 </div>
 
                 <div className="mt-4 p-4 bg-[#0B1D26] rounded-lg border border-gray-800">
+                  <div className="text-xs text-gray-500 mb-2 font-semibold uppercase">Outbound Flight</div>
                   <div className="flex justify-between mb-2">
                     <span className="text-2xl font-black">{outbound.departure.time}</span>
                     <span className="text-2xl font-black">{outbound.arrival.time}</span>
@@ -270,6 +277,18 @@ const BookingCheckoutPage = () => {
                     <span>{outbound.origin_iata}</span>
                     <span>{outbound.duration}</span>
                     <span>{outbound.destination_iata}</span>
+                  </div>
+                </div>
+                <div className="mt-3 p-4 bg-[#0B1D26] rounded-lg border border-gray-800">
+                  <div className="text-xs text-gray-500 mb-2 font-semibold uppercase">Return Flight</div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-2xl font-black">{flight.inbound?.departure?.time || 'TBD'}</span>
+                    <span className="text-2xl font-black">{flight.inbound?.arrival?.time || 'TBD'}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-500">
+                    <span>{flight.inbound?.origin_iata || '---'}</span>
+                    <span>{flight.inbound?.duration || '---'}</span>
+                    <span>{flight.inbound?.destination_iata || '---'}</span>
                   </div>
                 </div>
               </div>

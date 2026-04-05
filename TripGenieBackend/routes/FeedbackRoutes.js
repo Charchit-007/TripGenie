@@ -3,6 +3,18 @@ const express  = require('express');
 const router   = express.Router();
 const Feedback = require('../models/Feedback');
 
+// GET /api/feedback
+// Retrieve all feedback
+router.get('/', async (req, res) => {
+  try {
+    const feedbackList = await Feedback.find().sort({ createdAt: -1 });
+    return res.status(200).json(feedbackList);
+  } catch (err) {
+    console.error('Failed to fetch feedback:', err);
+    return res.status(500).json({ success: false, error: 'Server error. Please try again.' });
+  }
+});
+
 // POST /api/feedback
 // Accepts: { name, email, category, message, userId (optional) }
 router.post('/', async (req, res) => {

@@ -101,8 +101,13 @@ const BookingTicketPage = () => {
             </div>
           </div>
           <div className="text-right">
-            <div className="bg-[#10b981] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-1">
-              {ticket.status}
+            <div className="flex items-center gap-2 mb-2">
+              <div className="bg-[#10b981] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                {ticket.status}
+              </div>
+              <div className="bg-[#56B7DF]/20 text-[#56B7DF] text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                🔄 Round Trip
+              </div>
             </div>
             <p className="text-sm text-gray-400 uppercase tracking-widest">E-Ticket</p>
           </div>
@@ -111,6 +116,10 @@ const BookingTicketPage = () => {
         {/* Middle Body - Route & Times */}
         <div className="p-8 pb-10 relative">
           
+          {/* Outbound Flight */}
+          <div className="mb-4">
+            <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-2">Outbound Flight</p>
+          </div>
           <div className="flex justify-between items-center mb-8">
             <div className="w-1/3">
               <p className="text-5xl font-black text-[#0f2733]">{outbound.origin_iata}</p>
@@ -138,6 +147,42 @@ const BookingTicketPage = () => {
               <p className="text-sm text-gray-400">{outbound.arrival.date}</p>
             </div>
           </div>
+
+          {/* Return Flight */}
+          {flightDetails.inbound && (
+            <>
+              <div className="border-t border-gray-300 my-8 pt-8">
+                <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-2">Return Flight</p>
+              </div>
+              <div className="flex justify-between items-center mb-8">
+                <div className="w-1/3">
+                  <p className="text-5xl font-black text-[#0f2733]">{flightDetails.inbound.origin_iata}</p>
+                  <p className="text-gray-500 font-semibold mt-1">{flightDetails.inbound.origin_city}</p>
+                  <p className="text-sm text-gray-400 mt-2">{flightDetails.inbound.departure.time}</p>
+                  <p className="text-sm text-gray-400">{flightDetails.inbound.departure.date}</p>
+                </div>
+                
+                <div className="w-1/3 flex flex-col items-center relative">
+                  <div className="w-full flex items-center">
+                    <div className="h-px bg-gray-300 w-full"></div>
+                    <span className="text-2xl mx-2 text-[#56B7DF]">✈️</span>
+                    <div className="h-px bg-gray-300 w-full"></div>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2 uppercase font-semibold tracking-widest">{flightDetails.inbound.duration}</p>
+                  <p className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded mt-1">
+                    {flightDetails.inbound.stops === 0 ? 'NON-STOP' : `${flightDetails.inbound.stops} STOP(S)`}
+                  </p>
+                </div>
+
+                <div className="w-1/3 text-right">
+                  <p className="text-5xl font-black text-[#0f2733]">{flightDetails.inbound.destination_iata}</p>
+                  <p className="text-gray-500 font-semibold mt-1">{flightDetails.inbound.destination_city}</p>
+                  <p className="text-sm text-gray-400 mt-2">{flightDetails.inbound.arrival.time}</p>
+                  <p className="text-sm text-gray-400">{flightDetails.inbound.arrival.date}</p>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Passenger & Booking Meta Grid */}
           <div className="bg-gray-50 rounded-xl p-6 border border-gray-100 grid grid-cols-2 md:grid-cols-4 gap-6">

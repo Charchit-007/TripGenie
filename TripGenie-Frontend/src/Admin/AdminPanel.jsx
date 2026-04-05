@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import {Mountain} from 'lucide-react';
 import useAdminAuth from '../hooks/useAdminAuth';
 
 const ADMIN_URL = "http://localhost:5000";
@@ -17,6 +18,7 @@ const TripGenieAdmin = () => {
   const [admins, setAdmins] = useState([]);
   const [trips, setTrips] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [feedback, setFeedback] = useState([]);
   const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,7 +37,7 @@ const TripGenieAdmin = () => {
   const fetchAll = async () => {
     setIsLoading(true);
     try {
-      await Promise.all([fetchUsers(), fetchAdmins(), fetchTrips(), fetchStats(), fetchBookings()]);
+      await Promise.all([fetchUsers(), fetchAdmins(), fetchTrips(), fetchStats(), fetchBookings(), fetchFeedback()]);
     } finally {
       setIsLoading(false);
     }
@@ -88,6 +90,20 @@ const TripGenieAdmin = () => {
       setBookings(data.bookings || []);
     } catch (err) {
       console.error('Failed to fetch bookings:', err);
+    }
+  };
+
+  const fetchFeedback = async () => {
+    try {
+      const res = await fetch(`${ADMIN_URL}/api/feedback`);
+      if (!res.ok) {
+        console.error('Failed to fetch feedback: HTTP', res.status);
+        return;
+      }
+      const data = await res.json();
+      setFeedback(Array.isArray(data) ? data : data.feedback || []);
+    } catch (err) {
+      console.error('Failed to fetch feedback:', err);
     }
   };
 
@@ -253,16 +269,16 @@ const TripGenieAdmin = () => {
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
             )
           },
-          {
-            label: 'Replanned Trips',
-            value: stats?.replanCount ?? 0,
-            change: 'AI replanned',
-            gradient: 'from-cyan-300 to-teal-500',
-            icon: (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            )
-          },
+          // {
+          //   label: 'Replanned Trips',
+          //   value: stats?.replanCount ?? 0,
+          //   change: 'AI replanned',
+          //   gradient: 'from-cyan-300 to-teal-500',
+          //   icon: (
+          //     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          //       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          //   )
+          // },
           {
             label: 'Trip Types',
             value: tripTypeData.length,
@@ -885,6 +901,126 @@ const TripGenieAdmin = () => {
       </div>
     </div>
   );
+
+  // ─── Feedback View ────────────────────────────────────────────────────────
+  const FeedbackView = () => (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-3xl font-extrabold text-cyan-800" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>Feedback Management</h2>
+        <div className="inline-flex items-center px-4 py-2 rounded-xl bg-cyan-500/10 text-cyan-700 font-semibold text-sm">
+          {feedback.length} feedback items
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-md border border-black/[0.04] overflow-hidden">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gradient-to-r from-teal-50 to-cyan-50">
+              {['Name', 'Email', 'Category', 'Message', 'User ID', 'Date', 'Actions'].map(h => (
+                <th key={h} className="px-6 py-5 text-left text-xs font-bold text-cyan-800 uppercase tracking-wider">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {feedback.length > 0 ? feedback.map(item => (
+              <tr key={item._id} className="border-t border-black/[0.06] hover:bg-cyan-500/5 transition-colors">
+                <td className="px-6 py-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center text-white font-bold">
+                      {item.name?.charAt(0) || '?'}
+                    </div>
+                    <span className="font-medium text-gray-800">{item.name}</span>
+                  </div>
+                </td>
+                <td className="px-6 py-5 text-gray-600">{item.email}</td>
+                <td className="px-6 py-5">
+                  <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold ${
+                    item.category === 'Bug Report' 
+                      ? 'bg-red-500/10 text-red-700'
+                      : item.category === 'Feature Request'
+                      ? 'bg-blue-500/10 text-blue-700'
+                      : item.category === 'Complaint'
+                      ? 'bg-amber-500/10 text-amber-700'
+                      : 'bg-cyan-500/10 text-cyan-700'
+                  }`}>
+                    {item.category}
+                  </span>
+                </td>
+                <td className="px-6 py-5 text-gray-600 max-w-xs truncate">{item.message}</td>
+                <td className="px-6 py-5 text-gray-600 text-sm font-mono">{item.userId ? item.userId.substring(0, 8) + '...' : 'Guest'}</td>
+                <td className="px-6 py-5 text-sm text-gray-600">{new Date(item.createdAt).toLocaleDateString()}</td>
+                <td className="px-6 py-5">
+                  <button
+                    title="View full message"
+                    className="w-9 h-9 rounded-lg bg-cyan-500/10 text-cyan-600 hover:bg-cyan-500 hover:text-white flex items-center justify-center transition-all hover:scale-110"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            )) : (
+              <tr>
+                <td colSpan="7" className="px-6 py-16 text-center text-gray-400 font-medium">No feedback yet</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {(() => {
+          const bugReports = feedback.filter(f => f.category === 'Bug Report').length;
+          const featureRequests = feedback.filter(f => f.category === 'Feature Request').length;
+          const complaints = feedback.filter(f => f.category === 'Complaint').length;
+          const suggestions = feedback.filter(f => f.category === 'Suggestion').length;
+
+          return [
+            {
+              label: 'Total Feedback',
+              value: feedback.length,
+              gradient: 'from-cyan-400 to-cyan-600',
+              icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+            },
+            {
+              label: 'Bug Reports',
+              value: bugReports,
+              gradient: 'from-red-400 to-red-600',
+              icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            },
+            {
+              label: 'Feature Requests',
+              value: featureRequests,
+              gradient: 'from-blue-400 to-blue-600',
+              icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5h.01" />
+            },
+            {
+              label: 'Complaints',
+              value: complaints,
+              gradient: 'from-amber-400 to-amber-600',
+              icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4v2m0 5v.01M12 3a9 9 0 110 18 9 9 0 010-18z" />
+            }
+          ];
+        })().map((card, i) => (
+          <div key={i} className="bg-white rounded-2xl p-7 shadow-md border border-black/[0.04] flex gap-5 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+            <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${card.gradient} flex items-center justify-center text-white flex-shrink-0`}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {card.icon}
+              </svg>
+            </div>
+            <div className="flex-1">
+              <span className="text-sm text-gray-500 font-medium block mb-1">{card.label}</span>
+              <span className="text-4xl font-extrabold text-cyan-800 block mb-1" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>{card.value}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
   return (
     <>
       <style>{`
@@ -901,20 +1037,9 @@ const TripGenieAdmin = () => {
           {/* Logo */}
           <div className="px-8 pb-8 pt-8 border-b border-white/10">
             <div className="flex items-center gap-3">
-              <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none">
-                <path d="M16 2L4 14L16 26L28 14L16 2Z" fill="url(#g1)" />
-                <path d="M16 8L10 14L16 20L22 14L16 8Z" fill="url(#g2)" opacity="0.8" />
-                <defs>
-                  <linearGradient id="g1" x1="4" y1="2" x2="28" y2="26" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#06B6D4" /><stop offset="1" stopColor="#0891B2" />
-                  </linearGradient>
-                  <linearGradient id="g2" x1="10" y1="8" x2="22" y2="20" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#FFF" /><stop offset="1" stopColor="#CFFAFE" />
-                  </linearGradient>
-                </defs>
-              </svg>
+              <Mountain className="text-white w-8 h-8" />
               <span className="text-2xl font-extrabold bg-gradient-to-r from-cyan-400 via-white to-teal-400 bg-clip-text text-transparent" style={{ fontFamily: "'Bricolage Grotesque', sans-serif" }}>
-                TripGenie
+                Trip Genie
               </span>
             </div>
           </div>
@@ -941,6 +1066,10 @@ const TripGenieAdmin = () => {
               {
                 id: 'bookings', label: 'Bookings',
                 icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              },
+              {
+                id: 'feedback', label: 'Feedback',
+                icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
               }
             ].map(item => (
               <button
@@ -998,6 +1127,7 @@ const TripGenieAdmin = () => {
                 {activeTab === 'admins' && 'Admin Management'}
                 {activeTab === 'trips' && 'Trip Plans Management'}
                 {activeTab === 'bookings' && 'Bookings Management'}
+                {activeTab === 'feedback' && 'Feedback Management'}
               </h1>
               <p className="text-gray-500 text-sm">
                 {activeTab === 'dashboard' && "Welcome back! Here's what's happening with TripGenie today."}
@@ -1005,6 +1135,7 @@ const TripGenieAdmin = () => {
                 {activeTab === 'admins' && 'Manage administrator accounts and permissions.'}
                 {activeTab === 'trips' && 'View and manage all trip plans created by users.'}
                 {activeTab === 'bookings' && 'Manage flight bookings and update booking statuses.'}
+                {activeTab === 'feedback' && 'View and manage user feedback and suggestions.'}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -1028,6 +1159,7 @@ const TripGenieAdmin = () => {
             {activeTab === 'admins' && <AdminsView />}
             {activeTab === 'trips' && <TripsView />}
             {activeTab === 'bookings' && <BookingsView />}
+            {activeTab === 'feedback' && <FeedbackView />}
           </div>
         </main>
       </div>
