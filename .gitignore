@@ -9,6 +9,7 @@ dist/
 .env
 .venv/
 env/
+venv/
 
 ############################
 # Node / React / Vite
