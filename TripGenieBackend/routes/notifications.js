@@ -9,11 +9,14 @@ const { checkAndNotifyAllTrips } = require('../services/notificationScheduler');
 // GET all notifications for a user
 router.get('/:userId', async (req, res) => {
   try {
+    console.log('📬 GET /notifications/:userId', req.params.userId);
     const notifications = await Notification.find({ 
       userId: req.params.userId 
     }).sort({ createdAt: -1 });
+    console.log(`Found ${notifications.length} notifications`);
     res.json({ notifications });
   } catch (err) {
+    console.error('Error fetching notifications:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -70,9 +73,11 @@ router.delete('/:notificationId', async (req, res) => {
 // TEMP — remove in production
 router.post('/test/trigger', async (req, res) => {
   try {
+    console.log('🚀 POST /notifications/test/trigger triggered');
     await checkAndNotifyAllTrips();
     res.json({ success: true, message: 'Scheduler triggered manually' });
   } catch (err) {
+    console.error('Error triggering scheduler:', err);
     res.status(500).json({ error: err.message });
   }
 });

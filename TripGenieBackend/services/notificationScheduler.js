@@ -1,6 +1,7 @@
 // services/notificationScheduler.js
 const cron = require('node-cron');
 const User = require('../models/user');
+const Trip = require('../models/Trip');
 const Notification = require('../models/Notification');
 const { getWeatherForecast, assessWeatherSeverity } = require('./weatherService');
 const { sendWeatherAlert } = require('./emailService');
@@ -56,26 +57,6 @@ async function callReplanAgent(trip, user, alert) {
   }
 }
 
-// ✅ Update watchlist item with replanned itinerary
-async function updateWatchlistWithReplan(userId, tripId, replannedItinerary) {
-  try {
-    const user = await User.findById(userId);
-    if (!user) return;
-
-    const trip = user.watchlist.id(tripId);
-    if (!trip) return;
-
-    trip.previousAIResponse = trip.aiResponse;
-    trip.aiResponse = replannedItinerary;
-    trip.isReplanned = true;
-
-    await user.save();
-    console.log(`📝 Watchlist updated with replan for trip ${tripId}`);
-  } catch (err) {
-    console.error(`❌ Failed to update watchlist with replan:`, err.message);
-  }
-}
-
 // ✅ Main Scheduler Function
 async function checkAndNotifyAllTrips() {
   console.log('🔔 Running notification check...');
@@ -90,74 +71,79 @@ async function checkAndNotifyAllTrips() {
     const endOfDay = new Date(today);
     endOfDay.setHours(23, 59, 59, 999);
 
-    const users = await User.find({
-      'watchlist.startDate': { $gte: today, $lte: thirtyDaysLater }
-    });
+    // ✅ FIX: Query the Trip collection directly, not User.watchlist
+    const trips = await Trip.find({
+      startDate: { $gte: today, $lte: thirtyDaysLater }
+    }).populate('userId', 'email name');
 
-    console.log(`Found ${users.length} users with upcoming trips`);
+    console.log(`Found ${trips.length} trips with upcoming dates`);
 
-    for (const user of users) {
-      for (const trip of user.watchlist) {
+    for (const trip of trips) {
+      const user = trip.userId;
+      
+      if (!user) {
+        console.log(`⚠️ Trip ${trip._id} has no associated user, skipping`);
+        continue;
+      }
 
-        if (trip.startDate < today || trip.startDate > thirtyDaysLater) continue;
+      // Check if already notified today
+      const alreadyNotified = await Notification.findOne({
+        tripId: trip._id,
+        createdAt: { $gte: startOfDay, $lte: endOfDay }
+      });
 
-        const alreadyNotified = await Notification.findOne({
-          tripId: trip._id.toString(),
-          createdAt: { $gte: startOfDay, $lte: endOfDay }
-        });
+      if (alreadyNotified) {
+        console.log(`⏭️ Already notified today for trip ${trip._id}`);
+        continue;
+      }
 
-        if (alreadyNotified) {
-          console.log(`⏭️ Already notified today for trip ${trip._id}`);
-          continue;
-        }
+      const forecasts = await getWeatherForecast(trip.destination, trip.startDate);
+      const alert = assessWeatherSeverity(forecasts);
 
-        const forecasts = await getWeatherForecast(trip.destination, trip.startDate);
-        const alert = assessWeatherSeverity(forecasts);
+      if (!alert) continue;
 
-        if (!alert) continue;
+      const shouldNotify = applySeverityRules(alert, trip.startDate);
+      if (!shouldNotify) continue;
 
-        const shouldNotify = applySeverityRules(alert, trip.startDate);
-        if (!shouldNotify) continue;
+      const message = await generateAlertMessage(trip.destination, alert);
 
-        const message = await generateAlertMessage(trip.destination, alert);
+      // ✅ Create the notification
+      const notification = await Notification.create({
+        userId: user._id,
+        tripId: trip._id,
+        destination: trip.destination,
+        message,
+        severity: alert.severity,
+        type: 'weather',
+        emailSent: false
+      });
 
-        // ✅ Create the notification
-        const notification = await Notification.create({
-          userId: user._id.toString(),
-          tripId: trip._id.toString(),
-          destination: trip.destination,
-          message,
-          severity: alert.severity,
-          type: 'weather',
-          emailSent: false
-        });
+      console.log(`✅ Notification created for user ${user._id} — ${trip.destination}`);
 
-        console.log(`✅ Notification created for user ${user._id} — ${trip.destination}`);
+      // ✅ Send email for critical and warning
+      const emailSent = await sendWeatherAlert(user.email, user.name, notification);
+      if (emailSent) {
+        await Notification.findByIdAndUpdate(notification._id, { emailSent: true });
+        console.log(`📧 Email sent for trip ${trip._id}`);
+      }
 
-        // ✅ Send email for critical and warning
-        const emailSent = await sendWeatherAlert(user.email, user.name, notification);
-        if (emailSent) {
-          await Notification.findByIdAndUpdate(notification._id, { emailSent: true });
-          console.log(`📧 Email sent for trip ${trip._id}`);
-        }
+      // ✅ Critical alerts trigger replanning agent
+      if (alert.severity === 'critical') {
+        const replannedItinerary = await callReplanAgent(trip, user, alert);
 
-        // ✅ Critical alerts trigger replanning agent
-        if (alert.severity === 'critical') {
-          const replannedItinerary = await callReplanAgent(trip, user, alert);
+        if (replannedItinerary) {
+          await Notification.findByIdAndUpdate(notification._id, {
+            replannedItinerary
+          });
 
-          if (replannedItinerary) {
-            await Notification.findByIdAndUpdate(notification._id, {
-              replannedItinerary
-            });
+          // Update the trip with new itinerary
+          await Trip.findByIdAndUpdate(trip._id, {
+            previousAIResponse: trip.aiResponse,
+            aiResponse: replannedItinerary,
+            isReplanned: true
+          });
 
-            await updateWatchlistWithReplan(
-              user._id.toString(),
-              trip._id.toString(),
-              replannedItinerary
-            );
-
-            console.log(`🔄 Trip replanned for user ${user._id} — ${trip.destination}`);
-          }
+          console.log(`🔄 Trip replanned for user ${user._id} — ${trip.destination}`);
         }
       }
     }
